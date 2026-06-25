@@ -34,3 +34,6 @@ frontend/vite.config.d.ts
 .vscode/
 *.log
 .ipynb_checkpoints/
+
+# --- Claude Code local settings ---
+.claude/settings.local.json
