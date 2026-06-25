@@ -12,6 +12,8 @@ import os
 import sys
 import tempfile
 
+import pytest
+
 # Must be set before voice is imported (it reads these at import time).
 os.environ["LULU_DISABLE_FLAN"] = "1"
 _TMP_AUDIT = os.path.join(tempfile.gettempdir(), "lulu_test_audit.jsonl")
@@ -28,6 +30,14 @@ from backend.modules.voice import voice             # noqa: E402
 
 PROFILE = {"customer_id": "C0005"}
 MESSAGE = "My order arrived damaged, please help."
+
+
+@pytest.fixture(autouse=True)
+def _point_audit_log():
+    """Pin the audit log to this suite's temp file before every test, so a
+    sibling suite (e.g. test_pipeline) setting LULU_AUDIT_LOG can't hijack it."""
+    os.environ["LULU_AUDIT_LOG"] = _TMP_AUDIT
+    yield
 
 
 def _decision(action, **over):

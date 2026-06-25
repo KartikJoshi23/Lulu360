@@ -1,0 +1,13 @@
+# LuluCare 360 — minimal cloud deploy (Render/Railway free tier).
+#
+# Excludes tensorflow / torch / transformers on purpose: with LULU_DISABLE_FLAN=1
+# the Voice uses the deterministic template generator, and with no model
+# artifacts the Reader uses its keyword fallback. Both honour the same contracts,
+# so the full pipeline runs on a tiny footprint that fits a free dyno.
+#
+# For the LSTM Reader + FLAN-T5 Voice, deploy with backend/requirements.txt
+# instead (and ship the backend/models/ artifacts).
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pandas>=2.0

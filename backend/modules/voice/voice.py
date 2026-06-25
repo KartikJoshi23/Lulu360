@@ -38,7 +38,12 @@ from shared import enums as E  # noqa: E402
 _DEFAULT_AUDIT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "logs", "audit_log.jsonl")
 )
-AUDIT_LOG_PATH = os.environ.get("LULU_AUDIT_LOG", _DEFAULT_AUDIT)
+
+
+def _audit_path() -> str:
+    """Resolve the audit-log path at call time so LULU_AUDIT_LOG changes (e.g.
+    set by tests) always take effect regardless of module import order."""
+    return os.environ.get("LULU_AUDIT_LOG", _DEFAULT_AUDIT)
 
 _audit_lock = threading.Lock()
 
@@ -286,8 +291,9 @@ _SUBJECTS = {
 def _next_audit_id() -> str:
     """A0001, A0002, ... based on how many rows already exist."""
     n = 0
-    if os.path.exists(AUDIT_LOG_PATH):
-        with open(AUDIT_LOG_PATH, "r", encoding="utf-8") as fh:
+    path = _audit_path()
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as fh:
             n = sum(1 for line in fh if line.strip())
     return f"A{n + 1:04d}"
 
@@ -326,8 +332,9 @@ def fire_email(profile: dict, decision: dict, reply_text: str):
         # _next_audit_id is read inside the lock to keep ids monotonic under
         # concurrent requests.
         record["audit_id"] = _next_audit_id()
-        os.makedirs(os.path.dirname(AUDIT_LOG_PATH), exist_ok=True)
-        with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as fh:
+        path = _audit_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(record) + "\n")
 
     return email
@@ -336,10 +343,11 @@ def fire_email(profile: dict, decision: dict, reply_text: str):
 def read_last_audit_id():
     """audit_id of the most recent money action, or None. Lets the pipeline
     populate the consolidated response's audit_id field."""
-    if not os.path.exists(AUDIT_LOG_PATH):
+    path = _audit_path()
+    if not os.path.exists(path):
         return None
     last = None
-    with open(AUDIT_LOG_PATH, "r", encoding="utf-8") as fh:
+    with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
             if line.strip():
                 last = line
@@ -354,9 +362,10 @@ def read_last_audit_id():
 def read_audit_log():
     """Whole audit trail as a list of dicts - dashboard stage 6."""
     rows = []
-    if not os.path.exists(AUDIT_LOG_PATH):
+    path = _audit_path()
+    if not os.path.exists(path):
         return rows
-    with open(AUDIT_LOG_PATH, "r", encoding="utf-8") as fh:
+    with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
             if line.strip():
                 rows.append(json.loads(line))

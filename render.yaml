@@ -1,0 +1,21 @@
+# Render Blueprint — deploys the LuluCare 360 Python API.
+# (The React frontend deploys separately to Netlify; see frontend/netlify.toml.)
+#
+# Usage: push to GitHub, then in Render -> New -> Blueprint, point at this repo.
+services:
+  - type: web
+    name: lulucare360-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements-deploy.txt
+    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      # Free tier: deterministic template Voice + keyword Reader (no torch/TF).
+      - key: LULU_DISABLE_FLAN
+        value: "1"
+      # The deployed Netlify origin allowed by CORS. Set after the site is live.
+      - key: NETLIFY_ORIGIN
+        sync: false
