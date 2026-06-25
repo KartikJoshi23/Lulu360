@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ComplaintForm } from "../components/ComplaintForm";
+import { ResultsPanel } from "../components/ResultsPanel";
+import { StatsCard } from "../components/StatsCard";
 import { resolve } from "../api/client";
 import type { ResolveResponse } from "../types";
 
@@ -7,12 +9,14 @@ export function DemoPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResolveResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statsKey, setStatsKey] = useState(0);
 
   async function handleResolve(message: string, customerId: string) {
     setLoading(true);
     setError(null);
     try {
       setResult(await resolve(message, customerId));
+      setStatsKey((k) => k + 1); // refresh the automation-rate card
     } catch (e) {
       setResult(null);
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -31,20 +35,15 @@ export function DemoPage() {
 
       <ComplaintForm loading={loading} onResolve={handleResolve} />
 
+      <StatsCard refreshKey={statsKey} />
+
       {error && (
         <div className="glass notice error" style={{ marginTop: 20 }}>
           ⚠️ {error}
         </div>
       )}
 
-      {/* Part C replaces this block with the four pipeline-stage cards. */}
-      {result && !error && (
-        <div className="glass notice" style={{ marginTop: 20 }}>
-          Resolved <b>{result.customer_id}</b> → action&nbsp;
-          <b>{result.economist.action}</b>
-          {result.email_fired ? " · email sent" : ""} (pipeline cards arrive in Part&nbsp;C).
-        </div>
-      )}
+      {result && !error && <ResultsPanel result={result} />}
 
       {!result && !error && (
         <div className="glass notice" style={{ marginTop: 20 }}>
