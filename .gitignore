@@ -11,6 +11,9 @@ env/
 *.h5
 backend/models/*.keras
 backend/models/*.h5
+backend/models/*.json
+backend/models/tokenizer.json
+backend/models/label_maps.json
 
 # --- Runtime logs / audit output ---
 backend/logs/*.jsonl

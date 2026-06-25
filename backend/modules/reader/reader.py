@@ -1,13 +1,20 @@
 """
-Module 1 - The Reader.  *** PLACEHOLDER - owned by the Reader sub-team. ***
+Module 1 — The Reader (NLU front door).
 
-This is NOT our deliverable. The Reader team replaces this file with the real
-LSTM (reader_issue.keras / reader_frustration.keras). We ship a tiny
-keyword stub that honours the frozen contract so the Voice team's pipeline and
-API run end-to-end against realistic inputs while we build Module 4.
+Exposes the frozen contract function:
+    read_message(text: str) -> {issue_type: str, frustration: str, confidence: float}
 
-Contract (Plan 4.1):
-    read_message(text) -> {issue_type: str, frustration: str, confidence: float}
+Hybrid loader (resilient by design):
+  * If the trained LSTM artifacts exist in backend/models/ AND TensorFlow is
+    importable, the real two-head LSTM (issue + frustration) is used. Train them
+    once with:  python backend/modules/reader/train_reader.py
+  * Otherwise the module falls back to a deterministic keyword classifier that
+    honours the same contract, so the pipeline and API still run end-to-end on a
+    host without the artifacts / without TensorFlow (e.g. a constrained free
+    tier). This mirrors the Voice's template-fallback philosophy: a result is
+    ALWAYS produced and the contract is never broken.
+
+Use reader.ACTIVE_BACKEND to see which path is live ("lstm" or "keyword").
 """
 
 import os
@@ -18,23 +25,71 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 from shared import enums as E  # noqa: E402
 
+_MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "models")
+_REQUIRED_ARTIFACTS = (
+    "reader_issue.keras", "reader_frustration.keras",
+    "tokenizer.json", "label_maps.json",
+)
+
+ACTIVE_BACKEND = "keyword"   # set to "lstm" if the real model loads below
+
+# ---------------------------------------------------------------------------
+# Try to load the real LSTM. Any failure -> graceful keyword fallback.
+# ---------------------------------------------------------------------------
+_issue_model = _frust_model = _tok = None
+_id_to_issue = _id_to_frust = None
+_MAXLEN = 40
+
+
+def _artifacts_present() -> bool:
+    return all(os.path.exists(os.path.join(_MODEL_DIR, a)) for a in _REQUIRED_ARTIFACTS)
+
+
+if _artifacts_present():
+    try:
+        import json
+
+        from tensorflow.keras.models import load_model
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        from tensorflow.keras.preprocessing.text import tokenizer_from_json
+
+        with open(os.path.join(_MODEL_DIR, "label_maps.json"), encoding="utf-8") as f:
+            _maps = json.load(f)
+        with open(os.path.join(_MODEL_DIR, "tokenizer.json"), encoding="utf-8") as f:
+            _tok = tokenizer_from_json(f.read())
+
+        _issue_model = load_model(os.path.join(_MODEL_DIR, "reader_issue.keras"))
+        _frust_model = load_model(os.path.join(_MODEL_DIR, "reader_frustration.keras"))
+        _MAXLEN = int(_maps["MAXLEN"])
+        _id_to_issue = {int(k): v for k, v in _maps["id_to_issue"].items()}
+        _id_to_frust = {int(k): v for k, v in _maps["id_to_frust"].items()}
+        _pad = pad_sequences
+        ACTIVE_BACKEND = "lstm"
+    except Exception as exc:  # pragma: no cover - depends on host
+        print(f"[reader] LSTM artifacts present but failed to load ({exc}); "
+              f"using keyword fallback")
+        ACTIVE_BACKEND = "keyword"
+
+
+# ---------------------------------------------------------------------------
+# Keyword fallback classifier (deterministic; contract-honouring)
+# ---------------------------------------------------------------------------
 _ISSUE_KEYWORDS = {
-    E.ISSUE_TYPES[0]: ("deliver", "courier", "package", "shipment", "arrive"),
-    E.ISSUE_TYPES[1]: ("broken", "damaged", "cracked", "defective", "faulty", "dented"),
-    E.ISSUE_TYPES[2]: ("refund", "return", "money back", "sent back", "pickup"),
-    E.ISSUE_TYPES[3]: ("charge", "bill", "invoice", "coupon", "payment", "deducted"),
-    E.ISSUE_TYPES[4]: ("quality", "cheap", "material", "looks nothing", "build"),
-    E.ISSUE_TYPES[5]: ("app", "website", "log in", "crash", "freeze", "loading", "search"),
-    E.ISSUE_TYPES[6]: ("question", "timings", "address", "available", "policy", "area"),
+    E.ISSUE_TYPES[0]: ("deliver", "courier", "package", "shipment", "arrive", "late", "never came"),
+    E.ISSUE_TYPES[1]: ("broken", "damaged", "cracked", "defective", "faulty", "dented", "spoiled", "shattered"),
+    E.ISSUE_TYPES[2]: ("refund", "return", "money back", "sent back", "exchange"),
+    E.ISSUE_TYPES[3]: ("charge", "bill", "invoice", "payment", "deducted", "double charged", "overcharged"),
+    E.ISSUE_TYPES[4]: ("quality", "cheap", "material", "looks nothing", "build", "poor quality"),
+    E.ISSUE_TYPES[5]: ("app", "website", "log in", "login", "crash", "freeze", "loading", "search", "checkout"),
+    E.ISSUE_TYPES[6]: ("question", "timings", "address", "available", "policy", "area", "enquiry", "inquiry"),
 }
-
 _HIGH = ("furious", "unacceptable", "last straw", "done with lulu", "had enough",
-         "outrageous", "never shop", "immediately", "now or")
+         "outrageous", "never shop", "immediately", "now or", "disgusted", "ridiculous")
 _MED = ("annoyed", "frustrating", "disappointed", "not happy", "unhappy",
-        "bothering", "needs attention", "look into", "sort this")
+        "bothering", "needs attention", "look into", "sort this", "please help")
 
 
-def predict_frustration(text: str) -> str:
+def _kw_frustration(text: str) -> str:
     low = text.lower()
     if any(w in low for w in _HIGH):
         return "High"
@@ -43,17 +98,41 @@ def predict_frustration(text: str) -> str:
     return "Low"
 
 
-def read_message(text: str) -> dict:
+def _kw_read(text: str) -> dict:
     low = (text or "").lower()
     best, score = E.ISSUE_TYPES[6], 0
     for issue, kws in _ISSUE_KEYWORDS.items():
         hits = sum(1 for kw in kws if kw in low)
         if hits > score:
             best, score = issue, hits
-    # Stub confidence: higher when keywords clearly matched, lower when not.
     confidence = 0.55 if score == 0 else min(0.95, 0.6 + 0.12 * score)
     return {
         "issue_type": best,
-        "frustration": predict_frustration(text),
+        "frustration": _kw_frustration(text),
         "confidence": round(float(confidence), 3),
     }
+
+
+# ---------------------------------------------------------------------------
+# Public contract function
+# ---------------------------------------------------------------------------
+def read_message(text: str) -> dict:
+    """Classify a complaint. Returns {issue_type, frustration, confidence}
+    with native, JSON-safe values; never raises on empty/garbage input."""
+    if not text or not text.strip():
+        return {"issue_type": "General_Query", "frustration": "Low", "confidence": 0.0}
+
+    if ACTIVE_BACKEND == "lstm":
+        seq = _pad(_tok.texts_to_sequences([text]), maxlen=_MAXLEN)
+        issue_probs = _issue_model.predict(seq, verbose=0)[0]
+        issue_idx = int(issue_probs.argmax())
+        confidence = float(issue_probs[issue_idx])
+        frust_probs = _frust_model.predict(seq, verbose=0)[0]
+        frust_idx = int(frust_probs.argmax())
+        return {
+            "issue_type": str(_id_to_issue[issue_idx]),
+            "frustration": str(_id_to_frust[frust_idx]),
+            "confidence": round(confidence, 3),
+        }
+
+    return _kw_read(text)
