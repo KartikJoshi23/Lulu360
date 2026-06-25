@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/constants.ts","./src/demodata.ts","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/api/client.ts","./src/components/complaintform.tsx","./src/components/healthpill.tsx","./src/components/topnav.tsx","./src/pages/aboutpage.tsx","./src/pages/auditpage.tsx","./src/pages/demopage.tsx"],"version":"5.9.3"}
