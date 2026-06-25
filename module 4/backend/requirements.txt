@@ -1,0 +1,14 @@
+# LuluCare 360 - backend (Module 4 / Voice + integration)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pandas>=2.0
+
+# The Voice generator. FLAN-T5 runs on transformers + torch; if these are not
+# installed (or are slow on a free tier), voice.py falls back to the
+# deterministic template generator automatically (Trap 14).
+transformers>=4.40
+torch>=2.2
+
+# Dev / tests
+pytest>=8.0
