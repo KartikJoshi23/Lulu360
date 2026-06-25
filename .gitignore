@@ -24,6 +24,9 @@ dist/
 build/
 .env
 .env.local
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # --- Editor / OS ---
 .DS_Store
