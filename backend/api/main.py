@@ -24,11 +24,13 @@ from fastapi import FastAPI, HTTPException                 # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware         # noqa: E402
 
 from backend import stats                                  # noqa: E402
+from backend.data import loader                            # noqa: E402
 from backend.pipeline import resolve                       # noqa: E402
 from backend.modules.reader import reader                  # noqa: E402
 from backend.modules.voice import voice                    # noqa: E402
 from shared.schemas import (                               # noqa: E402
     ResolveRequest, ResolveResponse, HealthResponse, StatsResponse,
+    CustomerCatalogEntry,
 )
 
 app = FastAPI(title="LuluCare 360 API", version="1.0")
@@ -76,6 +78,13 @@ def resolve_endpoint(req: ResolveRequest):
     except Exception:  # pragma: no cover - logging must not break the response
         pass
     return result
+
+
+@app.get("/customers", response_model=list[CustomerCatalogEntry])
+def customers():
+    """The customer + message catalog for the dashboard picker: every customer
+    who has complaints, with their tier and their real messages."""
+    return loader.message_catalog()
 
 
 @app.get("/audit")

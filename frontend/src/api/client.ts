@@ -6,6 +6,7 @@ import type {
   HealthResponse,
   StatsResponse,
   AuditRow,
+  CustomerCatalogEntry,
 } from "../types";
 import { DEMO_DATA, DEMO_PRESETS } from "../demoData";
 
@@ -91,4 +92,23 @@ export async function getAudit(): Promise<AuditRow[]> {
   if (DEMO_MODE) return demoAudit();
   const { audit_log } = await getJSON<{ audit_log: AuditRow[] }>("/audit");
   return audit_log;
+}
+
+export async function getCustomers(): Promise<CustomerCatalogEntry[]> {
+  if (DEMO_MODE) {
+    // Derive a small catalog from the demo fixtures so the picker still works.
+    return Object.values(DEMO_DATA).map((r) => ({
+      customer_id: r.customer_id,
+      loyalty_tier: "",
+      messages: [
+        {
+          message_id: r.customer_id,
+          text: r.message,
+          issue_type: r.reader.issue_type,
+          frustration: r.reader.frustration,
+        },
+      ],
+    }));
+  }
+  return getJSON<CustomerCatalogEntry[]>("/customers");
 }

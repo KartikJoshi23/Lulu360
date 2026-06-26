@@ -85,3 +85,17 @@ class StatsResponse(BaseModel):
     emails_sent: int
     automation_rate: float
     by_action: dict
+
+
+# --- customer / message catalog (dashboard picker) -------------------------
+class MessageEntry(BaseModel):
+    message_id: str
+    text: str
+    issue_type: str
+    frustration: str
+
+
+class CustomerCatalogEntry(BaseModel):
+    customer_id: str
+    loyalty_tier: str
+    messages: list[MessageEntry]

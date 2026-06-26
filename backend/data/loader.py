@@ -14,8 +14,10 @@ import pandas as pd
 
 _DATA_DIR = os.path.dirname(__file__)
 _CUSTOMERS_CSV = os.path.join(_DATA_DIR, "customers.csv")
+_MESSAGES_CSV = os.path.join(_DATA_DIR, "messages.csv")
 
 _customers = None
+_messages = None
 
 
 def _load():
@@ -61,3 +63,41 @@ def _py(v):
     except ImportError:
         pass
     return v
+
+
+def _load_messages():
+    global _messages
+    if _messages is None:
+        _messages = pd.read_csv(_MESSAGES_CSV)
+    return _messages
+
+
+def message_catalog():
+    """Every customer that has at least one complaint, with their loyalty tier
+    and their real messages from messages.csv. Powers the dashboard's customer /
+    message picker so an agent can select any customer and see their complaints.
+
+    Returns a list (sorted by customer_id) of:
+        {customer_id, loyalty_tier, messages: [{message_id, text,
+                                                 issue_type, frustration}, ...]}
+    """
+    msgs = _load_messages()
+    cust = _load()  # customers with _archetype already dropped
+    tier_by_id = dict(zip(cust.customer_id, cust.loyalty_tier))
+
+    catalog = []
+    for cid, grp in msgs.groupby("customer_id", sort=True):
+        catalog.append({
+            "customer_id": str(cid),
+            "loyalty_tier": str(tier_by_id.get(cid, "")),
+            "messages": [
+                {
+                    "message_id": str(r.message_id),
+                    "text": str(r.text),
+                    "issue_type": str(r.issue_type),
+                    "frustration": str(r.frustration),
+                }
+                for r in grp.itertuples(index=False)
+            ],
+        })
+    return catalog

@@ -62,6 +62,19 @@ export interface StatsResponse {
   by_action: Record<string, number>;
 }
 
+export interface MessageEntry {
+  message_id: string;
+  text: string;
+  issue_type: string;
+  frustration: string;
+}
+
+export interface CustomerCatalogEntry {
+  customer_id: string;
+  loyalty_tier: string;
+  messages: MessageEntry[];
+}
+
 export interface AuditRow {
   audit_id: string;
   timestamp: string;
