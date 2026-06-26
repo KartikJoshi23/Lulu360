@@ -281,11 +281,86 @@ def _template_reply(decision: dict, message: str) -> str:
 # ===========================================================================
 # 3. fire_email + the append-only audit trail
 # ===========================================================================
-_SUBJECTS = {
-    E.COUPON: "A coupon for you from Lulu",
-    E.REFUND: "Your Lulu refund is confirmed",
-    E.WALLET_CREDIT: "Lulu wallet credit added",
-}
+# Sign-off used on every customer email.
+_SIGNATURE = (
+    "Warm regards,\n"
+    "The LuluCare Team\n"
+    "Lulu Hypermarket · Customer Experience"
+)
+
+
+def _compose_subject(decision: dict, audit_id: str) -> str:
+    """A specific, informative subject line per money action."""
+    action = decision["action"]
+    if action == E.REFUND:
+        return f"Your Lulu refund is confirmed (ref {audit_id})"
+    if action == E.COUPON:
+        pct = int(decision.get("coupon_percent", 0))
+        return f"A {pct}% coupon has been added to your Lulu account (ref {audit_id})"
+    if action == E.WALLET_CREDIT:
+        amt = int(decision.get("wallet_credit", 0))
+        return f"{E.CURRENCY} {amt} wallet credit added to your Lulu account (ref {audit_id})"
+    return f"An update on your Lulu order (ref {audit_id})"
+
+
+def _compose_email_body(customer_id: str, decision: dict, audit_id: str) -> str:
+    """A full, self-contained confirmation email: greeting, the concrete remedy
+    with its timeline/next step, a reference + account line, and a sign-off.
+
+    Deliberately NOT the short on-screen reply (which mentions 'an email is on its
+    way' — odd to read inside the email itself)."""
+    action = decision["action"]
+
+    if action == E.REFUND:
+        opening = (
+            "We're truly sorry your order didn't meet the standard you rightly "
+            "expect from Lulu. We've approved a full refund, which will appear on "
+            "your original payment method within 5–7 business days."
+        )
+        if decision.get("refund_type") == E.PICKUP:
+            next_step = (
+                "Our courier will collect the item from you within 2 business days, "
+                "at a time that suits you — there's nothing you need to prepare."
+            )
+        else:
+            next_step = (
+                "You're welcome to keep or dispose of the item — there's no need to "
+                "return it to us."
+            )
+    elif action == E.COUPON:
+        pct = int(decision.get("coupon_percent", 0))
+        opening = (
+            "We're sorry for the inconvenience this caused. As a gesture of "
+            f"goodwill, we've added a {pct}% discount coupon to your Lulu account."
+        )
+        next_step = (
+            "It's valid on your next order for the next 30 days and will be applied "
+            "automatically at checkout."
+        )
+    elif action == E.WALLET_CREDIT:
+        amt = int(decision.get("wallet_credit", 0))
+        opening = (
+            "We're sorry for the trouble this caused. To make things right, we've "
+            f"added {E.CURRENCY} {amt} in wallet credit to your Lulu account."
+        )
+        next_step = "Your credit is ready to use on any future purchase and never expires."
+    else:
+        opening = "Here is an update on your recent Lulu order."
+        next_step = ""
+
+    lines = ["Dear valued Lulu customer,", "", opening]
+    if next_step:
+        lines += ["", next_step]
+    lines += [
+        "",
+        f"Reference: {audit_id}     Account: {customer_id}",
+        "",
+        "If anything isn't quite right, simply reply to this email and our care "
+        "team will personally look into it.",
+        "",
+        _SIGNATURE,
+    ]
+    return "\n".join(lines)
 
 
 def _next_audit_id() -> str:
@@ -298,40 +373,44 @@ def _next_audit_id() -> str:
     return f"A{n + 1:04d}"
 
 
-def fire_email(profile: dict, decision: dict, reply_text: str):
-    """Compose and 'send' the email when (and only when) email_trigger is True,
-    and write one append-only audit row for the money action.
+def fire_email(profile: dict, decision: dict, reply_text: str = ""):
+    """Compose and 'send' the confirmation email when (and only when)
+    email_trigger is True, and write one append-only audit row.
 
-    Returns the email dict {to, subject, body} or None. The Voice obeys
-    decision['email_trigger']; it never recomputes the rule (Integration
-    Rule 9). ACKNOWLEDGE and ESCALATE carry email_trigger=False -> no email,
-    no audit row."""
+    The email is a full, self-contained confirmation (greeting, the concrete
+    remedy + timeline, a reference number, and a sign-off) composed from the
+    decision — not the short on-screen reply. Returns {to, subject, body} or
+    None. The Voice obeys decision['email_trigger']; it never recomputes the
+    rule (Integration Rule 9). ACKNOWLEDGE and ESCALATE carry
+    email_trigger=False -> no email, no audit row.
+
+    (reply_text is accepted for signature compatibility; the email body is
+    composed independently so it never references 'an email is on its way'.)"""
     if not decision.get("email_trigger"):
         return None
 
     action = decision["action"]
     cust = str(profile["customer_id"])
-    email = {
-        "to": f"{cust}@example.com",
-        "subject": _SUBJECTS.get(action, "An update from Lulu"),
-        "body": reply_text,
-    }
-
-    record = {
-        "audit_id": _next_audit_id(),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "customer_id": cust,
-        "action": action,
-        "refund_type": decision.get("refund_type", E.NONE),
-        "coupon_percent": int(decision.get("coupon_percent", 0)),
-        "wallet_credit": int(decision.get("wallet_credit", 0)),
-        "email": email,
-    }
 
     with _audit_lock:
-        # _next_audit_id is read inside the lock to keep ids monotonic under
-        # concurrent requests.
-        record["audit_id"] = _next_audit_id()
+        # audit_id is assigned inside the lock so ids stay monotonic under
+        # concurrent requests AND the email can quote it as its reference.
+        audit_id = _next_audit_id()
+        email = {
+            "to": f"{cust}@example.com",
+            "subject": _compose_subject(decision, audit_id),
+            "body": _compose_email_body(cust, decision, audit_id),
+        }
+        record = {
+            "audit_id": audit_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "customer_id": cust,
+            "action": action,
+            "refund_type": decision.get("refund_type", E.NONE),
+            "coupon_percent": int(decision.get("coupon_percent", 0)),
+            "wallet_credit": int(decision.get("wallet_credit", 0)),
+            "email": email,
+        }
         path = _audit_path()
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "a", encoding="utf-8") as fh:

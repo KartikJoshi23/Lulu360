@@ -58,7 +58,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "reader": {
       "issue_type": "Damaged_Defective",
       "frustration": "Low",
-      "confidence": 1.0
+      "confidence": 0.999
     },
     "investigator": {
       "genuineness": "GENUINE",
@@ -78,12 +78,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0018@example.com",
-        "subject": "Your Lulu refund is confirmed",
-        "body": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right."
+        "subject": "Your Lulu refund is confirmed (ref A0024)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0024     Account: C0018\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0003",
+    "audit_id": "A0024",
     "automation": {
       "escalated": false
     }
@@ -94,7 +94,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "reader": {
       "issue_type": "Damaged_Defective",
       "frustration": "Low",
-      "confidence": 0.999
+      "confidence": 0.981
     },
     "investigator": {
       "genuineness": "GENUINE",
@@ -114,12 +114,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0013@example.com",
-        "subject": "Your Lulu refund is confirmed",
-        "body": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right."
+        "subject": "Your Lulu refund is confirmed (ref A0025)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0025     Account: C0013\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0004",
+    "audit_id": "A0025",
     "automation": {
       "escalated": false
     }
@@ -128,9 +128,9 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "customer_id": "C0001",
     "message": "I demand my money back immediately, this is absolutely unacceptable!",
     "reader": {
-      "issue_type": "Billing",
+      "issue_type": "Refund_Return",
       "frustration": "Low",
-      "confidence": 0.72
+      "confidence": 0.983
     },
     "investigator": {
       "genuineness": "LIKELY_ABUSER",
@@ -162,7 +162,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "reader": {
       "issue_type": "Delivery",
       "frustration": "Low",
-      "confidence": 1.0
+      "confidence": 0.999
     },
     "investigator": {
       "genuineness": "SUSPICIOUS",
@@ -182,12 +182,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're sorry for the trouble this has caused. As an apology, we'd like to offer you a 20% discount coupon on your next order. The coupon details are on their way to your email - thank you for giving us the chance to make this right.",
       "email": {
         "to": "C0016@example.com",
-        "subject": "A coupon for you from Lulu",
-        "body": "We're sorry for the trouble this has caused. As an apology, we'd like to offer you a 20% discount coupon on your next order. The coupon details are on their way to your email - thank you for giving us the chance to make this right."
+        "subject": "A 20% coupon has been added to your Lulu account (ref A0026)",
+        "body": "Dear valued Lulu customer,\n\nWe're sorry for the inconvenience this caused. As a gesture of goodwill, we've added a 20% discount coupon to your Lulu account.\n\nIt's valid on your next order for the next 30 days and will be applied automatically at checkout.\n\nReference: A0026     Account: C0016\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0005",
+    "audit_id": "A0026",
     "automation": {
       "escalated": false
     }
@@ -198,7 +198,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "reader": {
       "issue_type": "Delivery",
       "frustration": "Low",
-      "confidence": 0.93
+      "confidence": 0.926
     },
     "investigator": {
       "genuineness": "GENUINE",
@@ -230,7 +230,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "reader": {
       "issue_type": "App_Technical",
       "frustration": "Low",
-      "confidence": 0.973
+      "confidence": 0.924
     },
     "investigator": {
       "genuineness": "GENUINE",
@@ -260,9 +260,9 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "customer_id": "C0034",
     "message": "Your agent promised me a replacement on my last call about this order.",
     "reader": {
-      "issue_type": "Refund_Return",
+      "issue_type": "Delivery",
       "frustration": "Medium",
-      "confidence": 0.688
+      "confidence": 0.94
     },
     "investigator": {
       "genuineness": "GENUINE",
@@ -282,12 +282,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. There's no need to return the item - please keep or dispose of it as you wish. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0034@example.com",
-        "subject": "Your Lulu refund is confirmed",
-        "body": "We're truly sorry about this experience. We've confirmed a full refund for your order. There's no need to return the item - please keep or dispose of it as you wish. A confirmation email is on its way, and thank you for letting us put this right."
+        "subject": "Your Lulu refund is confirmed (ref A0027)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nYou're welcome to keep or dispose of the item \u2014 there's no need to return it to us.\n\nReference: A0027     Account: C0034\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0006",
+    "audit_id": "A0027",
     "automation": {
       "escalated": false
     }
@@ -318,12 +318,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0006@example.com",
-        "subject": "Your Lulu refund is confirmed",
-        "body": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right."
+        "subject": "Your Lulu refund is confirmed (ref A0028)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0028     Account: C0006\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0007",
+    "audit_id": "A0028",
     "automation": {
       "escalated": false
     }
