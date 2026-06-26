@@ -112,6 +112,8 @@ export function ComplaintForm({ loading, onResolve }: Props) {
         </div>
       )}
 
+      {catalog.length > 0 && <div className="panel-divider" />}
+
       {/* --- the message + id + action --- */}
       <div className="form-grid">
         <div className="field">

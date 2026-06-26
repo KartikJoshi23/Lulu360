@@ -33,9 +33,10 @@ export function DemoPage() {
         Economist → Voice — and see the fair, auditable resolution.
       </p>
 
-      <ComplaintForm loading={loading} onResolve={handleResolve} />
-
+      {/* KPI cards at the top */}
       <StatsCard refreshKey={statsKey} />
+
+      <ComplaintForm loading={loading} onResolve={handleResolve} />
 
       {error && (
         <div className="glass notice error" style={{ marginTop: 20 }}>
