@@ -38,15 +38,31 @@ export function DemoPage() {
 
       <ComplaintForm loading={loading} onResolve={handleResolve} />
 
-      {error && (
+      {loading && (
+        <div className="glass" style={{ marginTop: 20 }}>
+          <div className="pipeline-loading">
+            {["Reader", "Investigator", "Economist", "Voice"].map((name, i) => (
+              <span key={name} style={{ display: "contents" }}>
+                {i > 0 && <span className="pl-arrow">→</span>}
+                <span className="pl-step">
+                  <span className="pl-dot" style={{ animationDelay: `${i * 0.18}s` }} />
+                  <span className="pl-name">{name}</span>
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loading && error && (
         <div className="glass notice error" style={{ marginTop: 20 }}>
           ⚠️ {error}
         </div>
       )}
 
-      {result && !error && <ResultsPanel result={result} />}
+      {!loading && result && !error && <ResultsPanel result={result} />}
 
-      {!result && !error && (
+      {!loading && !result && !error && (
         <div className="glass notice" style={{ marginTop: 20 }}>
           Enter a complaint or pick a scenario chip above to run the pipeline.
         </div>
