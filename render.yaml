@@ -16,6 +16,6 @@ services:
       # Free tier: deterministic template Voice + keyword Reader (no torch/TF).
       - key: LULU_DISABLE_FLAN
         value: "1"
-      # The deployed Netlify origin allowed by CORS. Set after the site is live.
+      # The deployed frontend origin allowed by CORS.
       - key: NETLIFY_ORIGIN
-        sync: false
+        value: "https://lulu-resolve-in-class-grp-proj.vercel.app"

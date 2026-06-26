@@ -1,6 +1,6 @@
 {
   "installCommand": "cd frontend && npm ci",
-  "buildCommand": "cd frontend && npm run build",
+  "buildCommand": "cd frontend && VITE_API_BASE_URL=https://lulucare360-api.onrender.com VITE_DEMO_MODE=false npm run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
