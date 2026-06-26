@@ -99,7 +99,7 @@ def test_audit_row_per_money_action():
     voice.fire_email(PROFILE, _decision(E.ACKNOWLEDGE),
                      voice.generate_reply(_decision(E.ACKNOWLEDGE), MESSAGE))
 
-    rows = [json.loads(l) for l in open(_TMP_AUDIT, encoding="utf-8") if l.strip()]
+    rows = [json.loads(ln) for ln in open(_TMP_AUDIT, encoding="utf-8") if ln.strip()]
     assert len(rows) == 3
     assert [r["action"] for r in rows] == [E.COUPON, E.REFUND, E.WALLET_CREDIT]
     assert [r["audit_id"] for r in rows] == ["A0001", "A0002", "A0003"]

@@ -30,9 +30,15 @@ def _load():
 
 def lookup_profile(customer_id: str):
     """Return one customer row as a JSON-safe dict, or None if unknown.
-    NumPy scalars are cast to native Python types (Integration Rule 2)."""
+    NumPy scalars are cast to native Python types (Integration Rule 2).
+
+    The id is normalised (trimmed + upper-cased) so 'c0018' or ' C0018 ' resolve
+    the same as 'C0018' — the canonical form in customers.csv."""
+    if customer_id is None:
+        return None
+    cid = str(customer_id).strip().upper()
     df = _load()
-    row = df[df.customer_id == customer_id]
+    row = df[df.customer_id == cid]
     if len(row) == 0:
         return None
     raw = row.iloc[0].to_dict()
