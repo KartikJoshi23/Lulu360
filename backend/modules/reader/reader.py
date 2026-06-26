@@ -88,6 +88,12 @@ _HIGH = ("furious", "unacceptable", "last straw", "done with lulu", "had enough"
 _MED = ("annoyed", "frustrating", "disappointed", "not happy", "unhappy",
         "bothering", "needs attention", "look into", "sort this", "please help")
 
+_SERVICE_INQUIRY_PHRASES = (
+    "do you deliver", "deliver to my area", "delivery available", "available in my area",
+    "store timing", "store timings", "opening hours", "what time do you open",
+    "what time are you open", "return policy", "exchange policy",
+)
+
 
 def _kw_frustration(text: str) -> str:
     low = text.lower()
@@ -100,6 +106,13 @@ def _kw_frustration(text: str) -> str:
 
 def _kw_read(text: str) -> dict:
     low = (text or "").lower()
+    if any(phrase in low for phrase in _SERVICE_INQUIRY_PHRASES):
+        return {
+            "issue_type": E.ISSUE_GENERAL_QUERY,
+            "frustration": _kw_frustration(text),
+            "confidence": 0.82,
+        }
+
     best, score = E.ISSUE_TYPES[6], 0
     for issue, kws in _ISSUE_KEYWORDS.items():
         hits = sum(1 for kw in kws if kw in low)

@@ -61,3 +61,9 @@ def test_empty_input_safe_fallback():
 
 def test_active_backend_is_declared():
     assert reader.ACTIVE_BACKEND in ("lstm", "keyword")
+
+
+def test_keyword_fallback_routes_delivery_availability_question_as_general_query():
+    out = reader._kw_read("Hello Lulu, do you deliver to my area. Appreciate it.")
+    assert out["issue_type"] == "General_Query"
+    assert out["frustration"] == "Low"
