@@ -320,7 +320,7 @@ Open **http://localhost:5173**, pick a customer, and watch the complaint flow th
 
 | Variable | Where | Meaning |
 |---|---|---|
-| `VITE_API_BASE_URL` | frontend | Base URL of the Python API (default `http://localhost:8000`) |
+| `VITE_API_BASE_URL` | frontend | Base URL of the Python API (default `http://127.0.0.1:8000`) |
 | `VITE_DEMO_MODE` | frontend | `true` → serve precomputed responses, no backend needed |
 | `LULU_DISABLE_FLAN` | backend | `1` → skip FLAN-T5, use the fast deterministic template generator |
 | `LULU_FLAN_MODEL` | backend | FLAN model id (default `google/flan-t5-base`) |

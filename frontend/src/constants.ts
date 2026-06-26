@@ -42,5 +42,5 @@ export const ACTION_LABEL: Record<string, string> = {
 export const REFUND_TYPE_LABEL: Record<string, string> = {
   PICKUP: "Courier pickup",
   KEEP_ITEM: "Keep the item",
-  NONE: "—",
+  NONE: "-",
 };

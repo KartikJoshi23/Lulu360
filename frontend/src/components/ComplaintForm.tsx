@@ -8,14 +8,12 @@ interface Props {
 }
 
 function snippet(s: string, n = 60) {
-  return s.length > n ? s.slice(0, n).trimEnd() + "…" : s;
+  return s.length > n ? s.slice(0, n).trimEnd() + "..." : s;
 }
 
 export function ComplaintForm({ loading, onResolve }: Props) {
   const [message, setMessage] = useState("The TV arrived with a cracked screen and will not turn on.");
   const [customerId, setCustomerId] = useState("C0018");
-
-  // customer / message catalog for the picker
   const [catalog, setCatalog] = useState<CustomerCatalogEntry[]>([]);
   const [pickedId, setPickedId] = useState("");
   const [msgIdx, setMsgIdx] = useState(0);
@@ -66,7 +64,6 @@ export function ComplaintForm({ loading, onResolve }: Props) {
 
   return (
     <section className="glass">
-      {/* --- pick any customer and load their real complaint --- */}
       {catalog.length > 0 && (
         <div className="picker">
           <div className="field">
@@ -77,18 +74,18 @@ export function ComplaintForm({ loading, onResolve }: Props) {
               value={pickedId}
               onChange={(e) => selectCustomer(e.target.value)}
             >
-              <option value="">— choose a customer ({catalog.length}) —</option>
+              <option value="">Choose a customer ({catalog.length})</option>
               {catalog.map((c) => (
                 <option key={c.customer_id} value={c.customer_id}>
                   {c.customer_id}
-                  {c.loyalty_tier ? ` · ${c.loyalty_tier}` : ""} · {c.messages.length}{" "}
-                  complaint{c.messages.length > 1 ? "s" : ""}
+                  {c.loyalty_tier ? ` - ${c.loyalty_tier}` : ""} - {c.messages.length}{" "}
+                  case{c.messages.length > 1 ? "s" : ""}
                 </option>
               ))}
             </select>
           </div>
           <div className="field">
-            <label htmlFor="cmsg">Their complaint</label>
+            <label htmlFor="cmsg">Customer case</label>
             <select
               id="cmsg"
               className="input"
@@ -96,16 +93,16 @@ export function ComplaintForm({ loading, onResolve }: Props) {
               disabled={!picked}
               onChange={(e) => selectMessage(Number(e.target.value))}
             >
-              {!picked && <option>— select a customer first —</option>}
+              {!picked && <option>Select a customer first</option>}
               {picked?.messages.map((m, i) => (
                 <option key={m.message_id} value={i}>
-                  {m.issue_type.replace(/_/g, " ")} · {m.frustration} — “{snippet(m.text)}”
+                  {m.issue_type.replace(/_/g, " ")} - {m.frustration} - "{snippet(m.text)}"
                 </option>
               ))}
             </select>
             {picked && (
               <div className="hint">
-                Loaded their real message — edit it below if needed, then Resolve.
+                Loaded a real synthetic case. You can edit it before running the pipeline.
               </div>
             )}
           </div>
@@ -114,16 +111,15 @@ export function ComplaintForm({ loading, onResolve }: Props) {
 
       {catalog.length > 0 && <div className="panel-divider" />}
 
-      {/* --- the message + id + action --- */}
       <div className="form-grid">
         <div className="field">
-          <label htmlFor="msg">Complaint message</label>
+          <label htmlFor="msg">Customer message</label>
           <textarea
             id="msg"
             className="input"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Describe the customer's complaint…"
+            placeholder="Paste or type the customer's message..."
           />
         </div>
         <div className="side-col">
@@ -138,19 +134,18 @@ export function ComplaintForm({ loading, onResolve }: Props) {
             />
           </div>
           <button className="btn" onClick={submit} disabled={loading}>
-            {loading ? <><span className="spinner" /> Resolving…</> : "Resolve complaint"}
+            {loading ? <><span className="spinner" /> Running...</> : "Run case"}
           </button>
         </div>
       </div>
 
-      {/* --- quick scenarios --- */}
       <div className="form-grid" style={{ paddingTop: 0 }}>
         <div className="field" style={{ gridColumn: "1 / -1" }}>
           <label>Quick scenarios</label>
           <div className="chips">
             {DEMO_PRESETS.map((p) => (
               <button key={p.customer_id} className="chip" onClick={() => loadPreset(p)} disabled={loading}>
-                <b>{p.customer_id}</b> · {p.label}
+                <b>{p.customer_id}</b> - {p.label}
               </button>
             ))}
           </div>

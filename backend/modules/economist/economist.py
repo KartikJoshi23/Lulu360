@@ -36,7 +36,7 @@ try:
         REFUND_PICKUP, REFUND_KEEP_ITEM, REFUND_NONE,
         FRUST_HIGH, FRUST_MEDIUM,
         TIER_GOLD, TIER_SILVER, TIER_PLATINUM,
-        ISSUE_DAMAGED_DEFECTIVE,
+        ISSUE_DAMAGED_DEFECTIVE, ISSUE_GENERAL_QUERY,
         VALUE_HIGH, VALUE_MEDIUM, VALUE_LOW,
     )
 except Exception:  # pragma: no cover - standalone fallback
@@ -48,7 +48,7 @@ except Exception:  # pragma: no cover - standalone fallback
     REFUND_PICKUP, REFUND_KEEP_ITEM, REFUND_NONE = "PICKUP", "KEEP_ITEM", "NONE"
     FRUST_HIGH, FRUST_MEDIUM = "High", "Medium"
     TIER_GOLD, TIER_SILVER, TIER_PLATINUM = "Gold", "Silver", "Platinum"
-    ISSUE_DAMAGED_DEFECTIVE = "Damaged_Defective"
+    ISSUE_DAMAGED_DEFECTIVE, ISSUE_GENERAL_QUERY = "Damaged_Defective", "General_Query"
     VALUE_HIGH, VALUE_MEDIUM, VALUE_LOW = "HIGH", "MEDIUM", "LOW"
 
 
@@ -150,6 +150,9 @@ def choose_action(verdict: dict, reader: dict, p: dict):
     issue = reader["issue_type"]
     frust = reader["frustration"]
     band = value_band(p)
+
+    if issue == ISSUE_GENERAL_QUERY:
+        return ACTION_ACKNOWLEDGE, 0, 0, "General_Query service inquiry -> answer helpfully, no compensation flow"
 
     # 1) CONTRADICTED — our notes disprove the claim. No payout, no email.
     if claim == CONTRADICTED:

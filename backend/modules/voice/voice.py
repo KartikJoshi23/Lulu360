@@ -56,8 +56,12 @@ def describe_action(decision: dict) -> str:
     instruction and as the backbone of the template fallback. This is NOT the
     customer-facing reply; it never leaks to the user verbatim."""
     action = decision["action"]
+    reason = str(decision.get("reason", ""))
 
     if action == E.ACKNOWLEDGE:
+        if "General_Query service inquiry" in reason:
+            return ("answer the customer's service question helpfully, ask for "
+                    "any missing details, and do not discuss compensation")
         return ("politely acknowledge the complaint, show empathy, and offer "
                 "no compensation")
     if action == E.COUPON:
@@ -233,15 +237,17 @@ def _template_reply(decision: dict, message: str) -> str:
     """Deterministic, offline reply. The contractually safe fallback and the
     text the tests assert against (run with LULU_DISABLE_FLAN=1)."""
     action = decision["action"]
+    reason = str(decision.get("reason", ""))
 
     if action == E.ACKNOWLEDGE:
+        if "General_Query service inquiry" in reason:
+            return _inquiry_reply(message)
         # The hardest reply: courteous, non-accusatory, PROMISES NOTHING.
-        return ("Thank you for reaching out and for taking the time to share "
-                "this with us. We have carefully reviewed your account and the "
-                "details of your request. On this occasion we are not able to "
-                "issue any compensation, but your feedback has been logged and "
-                "we genuinely value you as a Lulu customer. Please don't "
-                "hesitate to contact us about any future order.")
+        return ("Thank you for reaching out and sharing this with us. We have "
+                "reviewed the details available on your account and logged your "
+                "feedback for our care team. We are unable to apply a remedy on "
+                "this request, but we appreciate you giving Lulu the chance to "
+                "review it and support you better next time.")
 
     if action == E.COUPON:
         pct = int(decision["coupon_percent"])
@@ -276,6 +282,28 @@ def _template_reply(decision: dict, message: str) -> str:
 
     return ("Thank you for contacting Lulu. We've received your message and "
             "will be in touch shortly.")
+
+
+def _inquiry_reply(message: str) -> str:
+    """Helpful service response for General_Query messages, without entering
+    the compensation/refund policy path."""
+    low = (message or "").lower()
+    if "deliver" in low or "delivery" in low or "area" in low:
+        return ("Thank you for contacting Lulu. We can help you check delivery "
+                "availability for your area. Please share your area name, full "
+                "delivery address, or nearest landmark, and our team will "
+                "confirm whether delivery is currently available there.")
+    if "time" in low or "timing" in low or "hours" in low or "open" in low:
+        return ("Thank you for contacting Lulu. Store and service timings can "
+                "vary by location, so please share the branch or area you are "
+                "asking about and we will confirm the latest hours for you.")
+    if "return" in low or "policy" in low or "exchange" in low:
+        return ("Thank you for contacting Lulu. We can guide you on the right "
+                "return or exchange process. Please share the order details and "
+                "product category so we can confirm the applicable policy.")
+    return ("Thank you for contacting Lulu. We can help with that request. "
+            "Please share the relevant order, branch, or area details and our "
+            "care team will guide you with the next step.")
 
 
 # ===========================================================================

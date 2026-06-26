@@ -15,7 +15,7 @@ export function TopNav({ view, onNavigate }: { view: View; onNavigate: (v: View)
         <div className="brand">
           <span className="brand-mark">L</span>
           <span>
-            LuluCare&nbsp;360 <small>· AI Co-Pilot</small>
+            LuluCare&nbsp;360 <small>/ AI Co-Pilot</small>
           </span>
         </div>
         <div className="nav-links">

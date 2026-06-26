@@ -10,7 +10,7 @@ import type {
 } from "../types";
 import { DEMO_DATA, DEMO_PRESETS } from "../demoData";
 
-const BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 export const DEMO_MODE = String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true";
 
 export { DEMO_PRESETS };

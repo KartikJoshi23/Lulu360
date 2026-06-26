@@ -7,7 +7,7 @@ function amount(r: AuditRow): string {
   if (r.coupon_percent > 0) return `${r.coupon_percent}% coupon`;
   if (r.wallet_credit > 0) return `AED ${r.wallet_credit}`;
   if (r.action === "REFUND") return "Full refund";
-  return "—";
+  return "-";
 }
 
 function when(ts: string): string {
@@ -36,7 +36,7 @@ export function AuditPage() {
 
       <StatsCard refreshKey={0} />
 
-      {error && <div className="glass notice error" style={{ marginTop: 20 }}>⚠️ {error}</div>}
+      {error && <div className="glass notice error" style={{ marginTop: 20 }}>{error}</div>}
 
       {rows && rows.length === 0 && (
         <div className="glass notice" style={{ marginTop: 20 }}>
@@ -65,9 +65,9 @@ export function AuditPage() {
                   <td>{when(r.timestamp)}</td>
                   <td>{r.customer_id}</td>
                   <td>{r.action}</td>
-                  <td>{r.refund_type === "NONE" ? "—" : r.refund_type}</td>
+                  <td>{r.refund_type === "NONE" ? "-" : r.refund_type}</td>
                   <td>{amount(r)}</td>
-                  <td>{r.email?.subject ?? "—"}</td>
+                  <td>{r.email?.subject ?? "-"}</td>
                 </tr>
               ))}
             </tbody>

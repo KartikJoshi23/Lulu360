@@ -16,7 +16,7 @@ export function DemoPage() {
     setError(null);
     try {
       setResult(await resolve(message, customerId));
-      setStatsKey((k) => k + 1); // refresh the automation-rate card
+      setStatsKey((k) => k + 1);
     } catch (e) {
       setResult(null);
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -27,13 +27,12 @@ export function DemoPage() {
 
   return (
     <div className="container page">
-      <h1 className="h1">Resolve a complaint</h1>
+      <h1 className="h1">Resolve a customer case</h1>
       <p className="sub">
-        Watch a customer message flow through all four AI modules — Reader → Investigator →
-        Economist → Voice — and see the fair, auditable resolution.
+        Watch a Lulu customer message flow through Reader, Investigator, Economist, and Voice
+        to produce a fair, auditable response.
       </p>
 
-      {/* KPI cards at the top */}
       <StatsCard refreshKey={statsKey} />
 
       <ComplaintForm loading={loading} onResolve={handleResolve} />
@@ -43,7 +42,7 @@ export function DemoPage() {
           <div className="pipeline-loading">
             {["Reader", "Investigator", "Economist", "Voice"].map((name, i) => (
               <span key={name} style={{ display: "contents" }}>
-                {i > 0 && <span className="pl-arrow">→</span>}
+                {i > 0 && <span className="pl-arrow">-&gt;</span>}
                 <span className="pl-step">
                   <span className="pl-dot" style={{ animationDelay: `${i * 0.18}s` }} />
                   <span className="pl-name">{name}</span>
@@ -56,7 +55,7 @@ export function DemoPage() {
 
       {!loading && error && (
         <div className="glass notice error" style={{ marginTop: 20 }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -64,7 +63,7 @@ export function DemoPage() {
 
       {!loading && !result && !error && (
         <div className="glass notice" style={{ marginTop: 20 }}>
-          Enter a complaint or pick a scenario chip above to run the pipeline.
+          Enter a complaint, question, or scenario chip above to run the pipeline.
         </div>
       )}
     </div>

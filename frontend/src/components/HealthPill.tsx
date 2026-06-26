@@ -33,7 +33,7 @@ export function HealthPill() {
   if (!health) {
     return (
       <span className="pill">
-        <span className="dot" /> Connecting…
+        <span className="dot" /> Connecting...
       </span>
     );
   }
@@ -41,7 +41,7 @@ export function HealthPill() {
   const reader = health.reader_backend === "lstm" ? "LSTM live" : "Keyword mode";
   return (
     <span className="pill" title={`FLAN-T5 ${health.flan_enabled ? "enabled" : "template fallback"}`}>
-      <span className="dot ok" /> API · {reader}
+      <span className="dot ok" /> API - {reader}
     </span>
   );
 }

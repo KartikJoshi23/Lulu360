@@ -6,7 +6,7 @@ import { GENUINENESS_SEVERITY, CLAIM_SEVERITY } from "../constants";
 export function InvestigatorCard({ v }: { v: InvestigatorOut }) {
   return (
     <div className="glass card">
-      <h3><span className="stage-no">2</span>Investigator · Trust verdict</h3>
+      <h3><span className="stage-no">2</span>Investigator / Trust verdict</h3>
       <div className="kv">
         <span className="k">Genuineness</span>
         <Badge label={v.genuineness} severity={GENUINENESS_SEVERITY[v.genuineness] ?? "neutral"} />

@@ -4,7 +4,7 @@ import { ConfidenceGauge } from "./ConfidenceGauge";
 export function ReaderCard({ reader }: { reader: ReaderOut }) {
   return (
     <div className="glass card">
-      <h3><span className="stage-no">1</span>Reader · Understanding</h3>
+      <h3><span className="stage-no">1</span>Reader / Understanding</h3>
       <div className="kv">
         <span className="k">Issue type</span>
         <span className="v">{reader.issue_type.replace(/_/g, " ")}</span>

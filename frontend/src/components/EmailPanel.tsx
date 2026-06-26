@@ -12,7 +12,7 @@ export function EmailPanel({ result }: { result: ResolveResponse }) {
         <div className="kv" style={{ borderBottom: 0 }}>
           <span className="k">Status</span>
           <span className="v" style={{ color: "var(--c-neutral)" }}>
-            No email — “{ACTION_LABEL[action] ?? action}” never emails
+            No email - {ACTION_LABEL[action] ?? action} never emails
           </span>
         </div>
       </div>
@@ -26,7 +26,7 @@ export function EmailPanel({ result }: { result: ResolveResponse }) {
         <div className="email-head">
           <span>New message</span>
           <span className="sent-stamp">
-            <span className="bdot" /> Sent{result.audit_id ? ` · ${result.audit_id}` : ""}
+            <span className="bdot" /> Sent{result.audit_id ? ` - ${result.audit_id}` : ""}
           </span>
         </div>
         <div className="email-body">

@@ -39,7 +39,9 @@ app = FastAPI(title="LuluCare 360 API", version="1.0")
 _origins = [
     os.environ.get("NETLIFY_ORIGIN", "https://lulucare360.netlify.app"),
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 app.add_middleware(
     CORSMiddleware,

@@ -67,6 +67,18 @@ def test_email_rule_holds_end_to_end():
             assert r["audit_id"] is None
 
 
+def test_general_query_gets_service_reply_not_compensation_refusal():
+    r = resolve("Hello Lulu, do you deliver to my area. Appreciate it.", "C0007")
+    assert r["reader"]["issue_type"] == "General_Query"
+    assert r["economist"]["action"] == "ACKNOWLEDGE"
+    assert r["email_fired"] is False
+    reply = r["voice"]["reply_text"].lower()
+    assert "delivery availability" in reply
+    assert "area" in reply
+    assert "compensation" not in reply
+    assert "refund" not in reply
+
+
 def test_unknown_customer_raises_keyerror():
     with pytest.raises(KeyError):
         resolve("hello", "C9999")
