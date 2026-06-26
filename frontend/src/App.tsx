@@ -16,7 +16,7 @@ export default function App() {
       <div className="silk-bg" aria-hidden="true">
         <ErrorBoundary>
           <Suspense fallback={null}>
-            <Silk speed={4.5} scale={1.1} color="#243b57" noiseIntensity={1.3} rotation={0.12} />
+            <Silk speed={4.5} scale={1.1} color="#123420" noiseIntensity={1.3} rotation={0.12} />
           </Suspense>
         </ErrorBoundary>
       </div>
