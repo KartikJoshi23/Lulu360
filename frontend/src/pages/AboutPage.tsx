@@ -18,7 +18,7 @@ export function AboutPage() {
       <div className="results">
         {MODULES.map((m) => (
           <div key={m.n} className="glass card">
-            <h3><span className="stage-no">Module&nbsp;{m.n}</span>{m.name} · <span style={{ color: "var(--ink-faint)" }}>{m.kind}</span></h3>
+            <h3><span className="stage-no">{m.n}</span>{m.name}&nbsp;·&nbsp;<span style={{ color: "var(--ink-faint)" }}>{m.kind}</span></h3>
             <p className="reason" style={{ fontSize: 13.5 }}>{m.desc}</p>
           </div>
         ))}
