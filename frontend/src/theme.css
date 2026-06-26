@@ -19,10 +19,10 @@
   --c-neutral: #94a3b8; /* slate  — acknowledge / inert */
 
   /* glass surfaces */
-  --glass: rgba(255, 255, 255, 0.075);
-  --glass-strong: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+  --glass: rgba(255, 255, 255, 0.09);
+  --glass-strong: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.24);
+  --shadow: 0 20px 54px rgba(0, 0, 0, 0.44);
   --radius: 18px;
 
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -71,39 +71,44 @@ a { color: var(--c-action); text-decoration: none; }
   position: relative;
   isolation: isolate;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.075) 42%, rgba(255, 255, 255, 0.045)),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(56, 189, 248, 0.055) 52%, rgba(167, 139, 250, 0.075));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.09) 38%, rgba(255, 255, 255, 0.055)),
+    radial-gradient(125% 110% at 12% 0%, rgba(255, 255, 255, 0.20), transparent 44%),
+    radial-gradient(120% 120% at 100% 100%, rgba(125, 211, 252, 0.14), transparent 46%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(167, 139, 250, 0.075));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow:
-    0 22px 58px rgba(0, 0, 0, 0.50),
-    0 8px 22px rgba(56, 189, 248, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(42px) saturate(190%) brightness(1.22);
-  -webkit-backdrop-filter: blur(42px) saturate(190%) brightness(1.22);
+    0 24px 62px rgba(0, 0, 0, 0.46),
+    0 8px 26px rgba(56, 189, 248, 0.10),
+    inset 0 1px 1px rgba(255, 255, 255, 0.54),
+    inset 0 -24px 40px rgba(255, 255, 255, 0.045),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(34px) saturate(210%) brightness(1.28) contrast(1.08);
+  -webkit-backdrop-filter: blur(34px) saturate(210%) brightness(1.28) contrast(1.08);
 }
-/* top-lit frost layer */
+/* liquid-glass highlight layer */
 .glass::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit;
   background:
-    radial-gradient(140% 90% at 50% 0%, rgba(255, 255, 255, 0.22), transparent 48%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 36%);
+    radial-gradient(70% 38% at 24% 0%, rgba(255, 255, 255, 0.44), transparent 64%),
+    radial-gradient(48% 58% at 100% 18%, rgba(125, 211, 252, 0.22), transparent 66%),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.30), transparent 18%, transparent 72%, rgba(255, 255, 255, 0.16)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 38%);
   mix-blend-mode: screen;
-  opacity: .72;
+  opacity: .78;
   pointer-events: none;
 }
-/* bright gradient-border sheen */
+/* liquid-glass edge sheen */
 .glass::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
   background:
     linear-gradient(135deg,
-      rgba(255, 255, 255, 0.86), rgba(125, 211, 252, 0.50) 24%,
-      rgba(255, 255, 255, 0.10) 45%, rgba(167, 139, 250, 0.36) 72%,
-      rgba(255, 255, 255, 0.52));
+      rgba(255, 255, 255, 0.96), rgba(186, 230, 253, 0.64) 18%,
+      rgba(255, 255, 255, 0.16) 38%, rgba(167, 139, 250, 0.44) 68%,
+      rgba(255, 255, 255, 0.72));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
-  opacity: .9;
+  opacity: .96;
   pointer-events: none;
 }
 
@@ -245,16 +250,24 @@ select.input { cursor: pointer; appearance: none; -webkit-appearance: none;
 }
 .card:hover { transform: translateY(-4px);
   box-shadow:
-    0 28px 64px rgba(0,0,0,.54),
-    0 10px 28px rgba(56,189,248,.11),
-    inset 0 1px 0 rgba(255,255,255,.28);
-  border-color: rgba(255,255,255,.28); }
+    0 30px 68px rgba(0,0,0,.50),
+    0 12px 30px rgba(56,189,248,.14),
+    inset 0 1px 1px rgba(255,255,255,.46);
+  border-color: rgba(255,255,255,.34); }
 /* top accent + stagger per stage */
 .results > .card { --accent: var(--c-action); position: relative; }
 .results > .card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--accent), transparent 85%);
-  box-shadow: 0 0 16px var(--accent);
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background:
+    linear-gradient(90deg, var(--accent), transparent 85%) top left / 100% 3px no-repeat,
+    radial-gradient(70% 38% at 24% 0%, rgba(255, 255, 255, 0.44), transparent 64%),
+    radial-gradient(48% 58% at 100% 18%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 66%),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.30), transparent 18%, transparent 72%, rgba(255, 255, 255, 0.16)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 38%);
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--accent) 70%, transparent);
+  mix-blend-mode: screen;
+  opacity: .78;
+  pointer-events: none;
 }
 .results > .card:nth-child(1) { --accent: var(--c-action);  animation-delay: .04s; }
 .results > .card:nth-child(2) { --accent: var(--c-caution); animation-delay: .12s; }
