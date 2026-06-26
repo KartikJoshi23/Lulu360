@@ -15,7 +15,6 @@ blocks every cross-origin request and the dashboard shows empty panels.
 
 import os
 import sys
-from typing import Optional
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if _ROOT not in sys.path:
@@ -23,12 +22,14 @@ if _ROOT not in sys.path:
 
 from fastapi import FastAPI, HTTPException                 # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware         # noqa: E402
-from pydantic import BaseModel                             # noqa: E402
 
 from backend import stats                                  # noqa: E402
 from backend.pipeline import resolve                       # noqa: E402
 from backend.modules.reader import reader                  # noqa: E402
 from backend.modules.voice import voice                    # noqa: E402
+from shared.schemas import (                               # noqa: E402
+    ResolveRequest, ResolveResponse, HealthResponse, StatsResponse,
+)
 
 app = FastAPI(title="LuluCare 360 API", version="1.0")
 
@@ -46,78 +47,8 @@ app.add_middleware(
 )
 
 
-# ===========================================================================
-# Request / response models (drive the OpenAPI docs at /docs)
-# ===========================================================================
-class ResolveRequest(BaseModel):
-    message: str
-    customer_id: str
-
-
-class ReaderOut(BaseModel):
-    issue_type: str
-    frustration: str
-    confidence: float
-
-
-class InvestigatorOut(BaseModel):
-    genuineness: str
-    claim_status: str
-    reason: str
-    signals: Optional[dict] = None
-    flags: Optional[list] = None
-    confidence: Optional[float] = None
-
-
-class EconomistOut(BaseModel):
-    action: str
-    refund_type: str
-    coupon_percent: int
-    wallet_credit: int
-    escalate: bool
-    email_trigger: bool
-    reason: str
-
-
-class EmailOut(BaseModel):
-    to: str
-    subject: str
-    body: str
-
-
-class VoiceOut(BaseModel):
-    reply_text: str
-    email: Optional[EmailOut] = None
-
-
-class AutomationOut(BaseModel):
-    escalated: bool
-
-
-class ResolveResponse(BaseModel):
-    customer_id: str
-    message: str
-    reader: ReaderOut
-    investigator: InvestigatorOut
-    economist: EconomistOut
-    voice: VoiceOut
-    email_fired: bool
-    audit_id: Optional[str] = None
-    automation: AutomationOut
-
-
-class HealthResponse(BaseModel):
-    status: str
-    reader_backend: str
-    flan_enabled: bool
-
-
-class StatsResponse(BaseModel):
-    total: int
-    escalated: int
-    emails_sent: int
-    automation_rate: float
-    by_action: dict
+# Contract models live in shared/schemas.py (imported above) so the OpenAPI docs
+# and the React contract stay in lock-step with shared/contracts.md.
 
 
 # ===========================================================================

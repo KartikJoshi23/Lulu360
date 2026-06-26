@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 600" font-family="Segoe UI, Inter, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#0f2036"/>
+    </linearGradient>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#9fb0c6"/>
+    </marker>
+    <style>
+      .card{rx:14;fill:rgba(255,255,255,0.05);stroke:rgba(255,255,255,0.12);}
+      .t{fill:#e8eef6;font-weight:700;font-size:15px;}
+      .k{fill:#9fb0c6;font-size:11.5px;}
+      .s{fill:#6b7d96;font-size:11px;}
+      .flow{stroke:#9fb0c6;stroke-width:2;fill:none;}
+    </style>
+  </defs>
+
+  <rect width="1040" height="600" fill="url(#bg)"/>
+  <text x="32" y="44" class="t" font-size="22">LuluCare 360 — Architecture</text>
+  <text x="32" y="66" class="s">A complaint + customer_id in → a fair, auditable decision (and a conditional email) out</text>
+
+  <!-- Frontend zone -->
+  <rect x="32" y="92" width="976" height="120" rx="16" fill="rgba(56,189,248,0.06)" stroke="rgba(56,189,248,0.25)"/>
+  <text x="48" y="116" class="k" fill="#38bdf8">FRONTEND · React 18 + TypeScript · Netlify (static)</text>
+  <g>
+    <rect class="card" x="48" y="128" width="300" height="68" rx="14"/>
+    <text x="64" y="156" class="t">Dashboard</text>
+    <text x="64" y="176" class="k">Input: message + customer_id</text>
+    <text x="64" y="190" class="s">renders all 6 stages · demo-mode fallback</text>
+  </g>
+  <text x="372" y="168" class="k">POST /resolve  (HTTPS, VITE_API_BASE_URL)</text>
+  <line x1="640" y1="162" x2="700" y2="162" class="flow" marker-end="url(#arr)"/>
+  <rect class="card" x="708" y="128" width="300" height="68" rx="14"/>
+  <text x="724" y="156" class="t">FastAPI</text>
+  <text x="724" y="176" class="k">/resolve · /health · /audit · /stats</text>
+  <text x="724" y="190" class="s">Render / Railway (off-Netlify) · CORS</text>
+
+  <!-- Backend pipeline zone -->
+  <rect x="32" y="232" width="976" height="248" rx="16" fill="rgba(45,212,191,0.05)" stroke="rgba(45,212,191,0.22)"/>
+  <text x="48" y="256" class="k" fill="#2dd4bf">BACKEND PIPELINE · one-directional flow</text>
+
+  <!-- stage boxes -->
+  <g>
+    <rect class="card" x="48" y="272" width="210" height="96" rx="14"/>
+    <text x="64" y="298" class="t">1 · Reader</text>
+    <text x="64" y="318" class="k">LSTM (NLU) · keyword fallback</text>
+    <text x="64" y="338" class="s">→ issue_type, frustration,</text>
+    <text x="64" y="352" class="s">   confidence</text>
+  </g>
+  <line x1="258" y1="320" x2="290" y2="320" class="flow" marker-end="url(#arr)"/>
+  <g>
+    <rect class="card" x="298" y="272" width="210" height="96" rx="14"/>
+    <text x="314" y="298" class="t">2 · Investigator</text>
+    <text x="314" y="318" class="k">trust rules (tone-blind)</text>
+    <text x="314" y="338" class="s">→ genuineness, claim_status,</text>
+    <text x="314" y="352" class="s">   reason</text>
+  </g>
+  <line x1="508" y1="320" x2="540" y2="320" class="flow" marker-end="url(#arr)"/>
+  <g>
+    <rect class="card" x="548" y="272" width="210" height="96" rx="14"/>
+    <text x="564" y="298" class="t">3 · Economist</text>
+    <text x="564" y="318" class="k">resolution + escalation rules</text>
+    <text x="564" y="338" class="s">→ action, refund_type, amounts,</text>
+    <text x="564" y="352" class="s">   escalate, email_trigger</text>
+  </g>
+  <line x1="758" y1="320" x2="790" y2="320" class="flow" marker-end="url(#arr)"/>
+  <g>
+    <rect class="card" x="798" y="272" width="210" height="96" rx="14"/>
+    <text x="814" y="298" class="t">4 · Voice</text>
+    <text x="814" y="318" class="k">FLAN-T5 · template fallback</text>
+    <text x="814" y="338" class="s">→ reply_text (+ email if</text>
+    <text x="814" y="352" class="s">   email_trigger)</text>
+  </g>
+
+  <!-- data + audit -->
+  <line x1="153" y1="368" x2="153" y2="408" class="flow" marker-end="url(#arr)"/>
+  <rect class="card" x="48" y="412" width="210" height="52" rx="14"/>
+  <text x="64" y="434" class="t" font-size="13">customers.csv · messages.csv</text>
+  <text x="64" y="452" class="s">backend/data · _archetype dropped on load</text>
+
+  <line x1="903" y1="368" x2="903" y2="408" class="flow" marker-end="url(#arr)"/>
+  <rect class="card" x="798" y="412" width="210" height="52" rx="14"/>
+  <text x="814" y="434" class="t" font-size="13">audit_log.jsonl</text>
+  <text x="814" y="452" class="s">append-only · every money action</text>
+
+  <!-- consolidated response back to UI -->
+  <path d="M903 232 C903 150 903 150 1008 150" class="flow" marker-end="url(#arr)" opacity="0"/>
+  <text x="32" y="512" class="k">Principle: genuineness comes from history, not tone; resolution comes from economics, not anger. Where message and records disagree, the records win.</text>
+  <text x="32" y="536" class="s">Email fires only on COUPON / REFUND / WALLET_CREDIT — never on ACKNOWLEDGE or ESCALATE. Automation rate: 90.9% (10/11 cases).</text>
+  <text x="32" y="566" class="s">Enums: single source (shared/enums.py ↔ enums.js). Contracts: shared/contracts.md + schemas.py. All boundary values JSON-safe.</text>
+</svg>

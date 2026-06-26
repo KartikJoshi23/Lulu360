@@ -432,7 +432,7 @@ cp .env.example .env.local
 ```bash
 cd backend
 source venv/bin/activate
-uvicorn main:app --reload --port 8000
+uvicorn backend.api.main:app --reload --port 8000
 ```
 
 **Terminal 2 — React frontend:**
@@ -475,6 +475,12 @@ Runs the full four-module pipeline.
 ```
 
 **Response** (consolidated pipeline contract):
+
+> ℹ️ The example below shows the *original planned* naming. The **implemented**
+> response uses the Plan §4.5 shape — `investigator`/`economist` blocks and
+> `voice.{reply_text,email}` — documented authoritatively in
+> [`shared/contracts.md`](shared/contracts.md) and typed in `shared/schemas.py`.
+
 ```json
 {
   "reader": {
@@ -573,7 +579,7 @@ lulucare360/
 │   │
 │   ├── modules/
 │   │   ├── reader/
-│   │   │   ├── reader.py                # read_complaint(text) → reader_output
+│   │   │   ├── reader.py                # read_message(text) → reader_output
 │   │   │   └── train_reader.py          # LSTM training script (run once, offline)
 │   │   ├── investigator/
 │   │   │   └── investigator.py          # assess_genuineness() + verify_claim()
