@@ -5,6 +5,24 @@ const MODULES = [
   { n: "4", name: "Voice", kind: "FLAN-T5 / NLG", desc: "Writes the customer reply and triggers email plus audit logging on money actions." },
 ];
 
+const TEAM = [
+  "Gagandeep Singh",
+  "Kartik Joshi",
+  "Anish Borkar",
+  "Neha Thapa",
+  "Harsh Verma",
+  "Tanishk Verma",
+  "Zedan Parol",
+];
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function AboutPage() {
   return (
     <div className="container page">
@@ -27,7 +45,19 @@ export function AboutPage() {
         ))}
       </div>
 
-      <div className="glass notice" style={{ marginTop: 16 }}>
+      <div className="credits">
+        <h2 className="credits-title">This project is made by</h2>
+        <div className="credit-grid">
+          {TEAM.map((name) => (
+            <div key={name} className="glass credit">
+              <div className="credit-avatar">{initials(name)}</div>
+              <div className="credit-name">{name}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="glass notice" style={{ marginTop: 22 }}>
         MAIB / NLP and NLG Dialogue Systems / SP Jain School of Global Management, Dubai.
         All customer data is synthetic.
       </div>
