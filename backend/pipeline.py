@@ -42,10 +42,8 @@ def resolve(message: str, customer_id: str) -> dict:
     reader = read_message(message)                       # Module 1
     verdict = investigate(reader, profile)               # Module 2
     decision = decide(verdict, reader, profile)          # Module 3
-    reply = voice.generate_reply(decision, message)      # Module 4
-    email = voice.fire_email(profile, decision, reply)   # Module 4 + audit
-
-    audit_id = voice.read_last_audit_id() if email else None
+    reply = voice.generate_reply(decision, message)           # Module 4
+    email, audit_id = voice.fire_email(profile, decision, reply)  # Module 4 + audit
 
     return {
         "customer_id": str(customer_id),
@@ -56,9 +54,12 @@ def resolve(message: str, customer_id: str) -> dict:
             "confidence": float(reader["confidence"]),
         },
         "investigator": {
-            "genuineness": str(verdict["genuineness"]),
+            "genuineness":  str(verdict["genuineness"]),
             "claim_status": str(verdict["claim_status"]),
-            "reason": str(verdict["reason"]),
+            "reason":       str(verdict["reason"]),
+            "signals":      verdict.get("signals"),
+            "flags":        verdict.get("flags"),
+            "confidence":   float(verdict["confidence"]) if verdict.get("confidence") is not None else None,
         },
         "economist": {
             "action": str(decision["action"]),

@@ -405,17 +405,15 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
     """Compose and 'send' the confirmation email when (and only when)
     email_trigger is True, and write one append-only audit row.
 
-    The email is a full, self-contained confirmation (greeting, the concrete
-    remedy + timeline, a reference number, and a sign-off) composed from the
-    decision — not the short on-screen reply. Returns {to, subject, body} or
-    None. The Voice obeys decision['email_trigger']; it never recomputes the
-    rule (Integration Rule 9). ACKNOWLEDGE and ESCALATE carry
-    email_trigger=False -> no email, no audit row.
+    Returns (email_dict, audit_id) or (None, None).  The audit_id is assigned
+    inside the lock so it is always correct even under concurrent requests —
+    callers must NOT use read_last_audit_id() as a substitute.
 
-    (reply_text is accepted for signature compatibility; the email body is
-    composed independently so it never references 'an email is on its way'.)"""
+    The Voice obeys decision['email_trigger']; it never recomputes the rule
+    (Integration Rule 9). ACKNOWLEDGE and ESCALATE carry email_trigger=False
+    → no email, no audit row."""
     if not decision.get("email_trigger"):
-        return None
+        return None, None
 
     action = decision["action"]
     cust = str(profile["customer_id"])
@@ -444,7 +442,7 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(record) + "\n")
 
-    return email
+    return email, audit_id
 
 
 def read_last_audit_id():
