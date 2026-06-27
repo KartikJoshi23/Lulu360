@@ -111,8 +111,20 @@ a { color: var(--lulu-green); text-decoration: none; }
 .nav-spacer { flex: 1; }
 
 /* ── headings ────────────────────────────────────── */
-.h1 { color: var(--ink); font-size: 32px; line-height: 1.1; margin: 6px 0 8px; font-weight: 800; letter-spacing: -.3px; }
-.sub { color: var(--ink-dim); margin: 0 0 24px; max-width: 700px; line-height: 1.6; font-size: 15px; }
+.h1 {
+  font-size: 32px; line-height: 1.16; margin: 6px 0 8px; font-weight: 800; letter-spacing: -.3px;
+  background: linear-gradient(100deg, var(--ink) 30%, #ffffff 50%, var(--ink) 70%);
+  background-size: 220% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: h1-rise .5s cubic-bezier(.18,.89,.32,1.10) both, h1-shimmer 6.5s linear infinite .5s;
+}
+@keyframes h1-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes h1-shimmer { to { background-position: -220% center; } }
+.sub {
+  color: var(--ink-dim); margin: 0 0 24px; max-width: 700px; line-height: 1.6; font-size: 15px;
+  animation: rise .55s ease both .08s;
+}
 
 /* ── glass panels ────────────────────────────────── */
 .glass {
@@ -136,7 +148,7 @@ a { color: var(--lulu-green); text-decoration: none; }
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
   animation: rise .44s cubic-bezier(.18,.89,.32,1.10) both;
 }
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--glass-border-hi); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--glass-border-hi); }
 /* glowing left accent bar, coloured per module via --accent */
 .card::after {
   content: ''; position: absolute;
@@ -144,6 +156,18 @@ a { color: var(--lulu-green); text-decoration: none; }
   border-radius: 0 3px 3px 0;
   background: var(--accent, rgba(255,255,255,0.12));
   box-shadow: 2px 0 10px color-mix(in srgb, var(--accent, rgba(255,255,255,0.1)) 45%, transparent);
+  transition: top .28s ease, bottom .28s ease, box-shadow .28s ease;
+}
+/* accent bar grows + glows brighter on hover */
+.card:hover::after {
+  top: 8px; bottom: 8px;
+  box-shadow: 2px 0 18px color-mix(in srgb, var(--accent, rgba(255,255,255,0.1)) 75%, transparent);
+}
+/* the numbered badge pops on hover */
+.card .stage-no { transition: transform .22s cubic-bezier(.18,.89,.32,1.3), box-shadow .22s ease; }
+.card:hover .stage-no {
+  transform: translateY(-1px) scale(1.1) rotate(-3deg);
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--accent, rgba(255,255,255,0.1)) 60%, transparent);
 }
 
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -372,8 +396,15 @@ textarea.input { min-height: 132px; resize: vertical; line-height: 1.6; }
 .stat .spark {
   position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
   background: linear-gradient(90deg, transparent, var(--accent, var(--lulu-green)), transparent);
-  opacity: .65;
+  background-size: 60% 100%; background-repeat: no-repeat;
+  opacity: .75; animation: spark-slide 3.2s ease-in-out infinite;
 }
+@keyframes spark-slide {
+  0%   { background-position: -60% 0; }
+  100% { background-position: 160% 0; }
+}
+.stat .num { transition: transform .22s cubic-bezier(.18,.89,.32,1.3); }
+.stat:hover .num { transform: scale(1.06); }
 
 /* ── audit table ─────────────────────────────────── */
 table.audit { width: 100%; border-collapse: collapse; }
@@ -539,6 +570,48 @@ table.audit th.sortable:hover { color: var(--ink); }
 }
 .toast-x:hover { color: var(--ink); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ── "made by" credits ───────────────────────────── */
+.credits { margin-top: 26px; }
+.credits-title {
+  font-size: 11.5px; color: var(--ink-dim); font-weight: 800;
+  letter-spacing: 1.4px; text-transform: uppercase; margin: 0 0 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.credits-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.14), transparent);
+}
+.credit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.credit {
+  position: relative; overflow: hidden; padding: 18px 16px; text-align: center;
+  animation: rise .5s cubic-bezier(.18,.89,.32,1.10) both;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.credit:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--glass-border-hi); }
+.credit::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent, var(--lulu-red)), transparent);
+  background-size: 60% 100%; background-repeat: no-repeat;
+  opacity: .8; animation: spark-slide 3.2s ease-in-out infinite;
+}
+.credit:nth-child(1) { --accent: var(--c-reader);       animation-delay: .04s; }
+.credit:nth-child(2) { --accent: var(--c-investigator); animation-delay: .10s; }
+.credit:nth-child(3) { --accent: var(--c-economist);    animation-delay: .16s; }
+.credit:nth-child(4) { --accent: var(--c-voice);        animation-delay: .22s; }
+.credit-avatar {
+  width: 46px; height: 46px; margin: 0 auto 11px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 17px;
+  background: linear-gradient(135deg, var(--accent, var(--lulu-red)), color-mix(in srgb, var(--accent, var(--lulu-red)) 55%, #000));
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--accent, var(--lulu-red)) 45%, transparent);
+  transition: transform .25s cubic-bezier(.18,.89,.32,1.3);
+}
+.credit:hover .credit-avatar { transform: scale(1.08) rotate(-4deg); }
+.credit-name { color: var(--ink); font-weight: 800; font-size: 14px; }
+.credit-role { color: var(--accent, var(--ink-dim)); font-weight: 700; font-size: 11px; margin-top: 3px; text-transform: uppercase; letter-spacing: .5px; }
+.credit-id { color: var(--ink-dim); font-size: 11px; margin-top: 5px; font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) { .credit-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .credit-grid { grid-template-columns: 1fr; } }
 
 /* ── accessibility ───────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
