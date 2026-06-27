@@ -65,13 +65,15 @@ def test_email_iff_trigger():
                       wallet_credit=200 if action == E.WALLET_CREDIT else 0,
                       refund_type=E.PICKUP if action == E.REFUND else E.NONE)
         reply = voice.generate_reply(d, MESSAGE)
-        email = voice.fire_email(PROFILE, d, reply)
+        email, audit_id = voice.fire_email(PROFILE, d, reply)
         if d["email_trigger"]:
             assert email is not None
             assert set(email) == {"to", "subject", "body"}
             assert email["to"] == "C0005@example.com"
+            assert audit_id is not None
         else:
             assert email is None
+            assert audit_id is None
 
 
 # --- ACKNOWLEDGE and ESCALATE never email ----------------------------------
@@ -80,7 +82,8 @@ def test_acknowledge_escalate_never_email():
         d = _decision(action)
         assert d["email_trigger"] is False
         reply = voice.generate_reply(d, MESSAGE)
-        assert voice.fire_email(PROFILE, d, reply) is None
+        email, audit_id = voice.fire_email(PROFILE, d, reply)
+        assert email is None and audit_id is None
 
 
 # --- an audit row is written for every money action ------------------------

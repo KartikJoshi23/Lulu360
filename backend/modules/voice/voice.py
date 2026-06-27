@@ -4,7 +4,7 @@ Module 4 - The Voice (NLG + the email + the audit trail).
 Owns (Implementation Plan, Section 2.4 / Table 6):
     describe_action(decision)            -> internal instruction string
     generate_reply(decision, message)    -> reply_text: str
-    fire_email(profile, decision, reply) -> dict | None
+    fire_email(profile, decision, reply) -> (email_dict, audit_id) | (None, None)
 
 Plus the append-only audit log writer (logs/audit_log.jsonl), rendered as
 dashboard stage 6.

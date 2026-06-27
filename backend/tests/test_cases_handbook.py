@@ -77,8 +77,9 @@ def test_handbook_case(n, cid, v, r, exp_action, exp_refund):
     assert d["refund_type"] == exp_refund, f"case {n} {cid}: refund {d['refund_type']} != {exp_refund}"
     # email rule must hold end-to-end
     reply = voice.generate_reply(d, "handbook")
-    email = voice.fire_email(P[cid] | {"customer_id": cid}, d, reply)
+    email, audit_id = voice.fire_email(P[cid] | {"customer_id": cid}, d, reply)
     assert (email is not None) == (d["action"] in EMAIL_ACTIONS)
+    assert (audit_id is not None) == (d["action"] in EMAIL_ACTIONS)
 
 
 def test_automation_rate_meets_target():
