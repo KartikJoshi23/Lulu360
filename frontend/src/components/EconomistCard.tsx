@@ -1,5 +1,6 @@
 import type { EconomistOut } from "../types";
 import { Badge } from "./Badge";
+import { WhyBox } from "./WhyBox";
 import { ACTION_SEVERITY, ACTION_LABEL, REFUND_TYPE_LABEL } from "../constants";
 import { ruleTrace, wasEscalationOverride } from "../ruleTrace";
 
@@ -56,7 +57,24 @@ export function EconomistCard({ e }: { e: EconomistOut }) {
           {e.escalate ? "Yes - human review" : "No"}
         </span>
       </div>
-      <p className="reason">{e.reason}</p>
+
+      <WhyBox title="Why this decision?">
+        {trace && (
+          <div className="why-factors">
+            <div className="why-row">
+              <span className="why-k">Rule fired</span>
+              <span className="why-v"><b>{trace.id}</b> — {trace.label}</span>
+            </div>
+          </div>
+        )}
+        {trace && <p className="why-narrative">{trace.detail}</p>}
+        {escalated && (
+          <p className="why-narrative" style={{ color: "var(--c-alert)" }}>
+            The escalation valve then overrode the proposed action: high stakes met low certainty, so the case was handed to a human.
+          </p>
+        )}
+        <p className="why-narrative why-engine">Engine note: {e.reason}</p>
+      </WhyBox>
     </div>
   );
 }

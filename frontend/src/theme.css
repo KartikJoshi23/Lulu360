@@ -272,6 +272,38 @@ textarea.input { min-height: 132px; resize: vertical; line-height: 1.6; }
   border-left: 2px solid rgba(255,255,255,0.12); padding-left: 12px;
 }
 
+/* ── "why" disclosure ────────────────────────────── */
+.why { margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px; }
+.why-summary {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+  color: var(--ink-dim); font-size: 12px; font-weight: 700;
+  letter-spacing: .3px; user-select: none; transition: color .15s ease;
+}
+.why-summary::-webkit-details-marker { display: none; }
+.why-summary:hover { color: var(--ink); }
+.why-caret { flex: none; transition: transform .2s ease; opacity: .8; }
+.why[open] > .why-summary > .why-caret { transform: rotate(90deg); }
+.why[open] > .why-summary { color: var(--ink); margin-bottom: 10px; }
+.why-body { animation: why-open .24s ease both; }
+@keyframes why-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.why-factors {
+  display: grid; gap: 1px; border-radius: 9px; overflow: hidden;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+}
+.why-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 7px 11px; background: rgba(10,15,26,0.55);
+}
+.why-k { color: var(--ink-dim); font-size: 12px; font-weight: 600; }
+.why-v { color: var(--ink-soft); font-size: 12px; font-weight: 700; text-align: right; }
+.why-v.good { color: var(--lulu-green); }
+.why-v.warn { color: var(--lulu-yellow); }
+.why-v.bad  { color: #f87171; }
+.why-narrative {
+  margin: 10px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.65;
+}
+.why-engine { color: var(--ink-dim); font-size: 11.5px; font-style: italic; }
+
 /* ── confidence gauge ────────────────────────────── */
 .rgauge     { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
 .rgauge-svg { width: 76px; height: 76px; transform: rotate(-90deg); flex: none; overflow: visible; }
