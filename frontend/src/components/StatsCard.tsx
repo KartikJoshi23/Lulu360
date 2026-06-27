@@ -41,16 +41,34 @@ function Stat({ value, label, accent, suffix = "" }: {
 
 export function StatsCard({ refreshKey }: { refreshKey: number }) {
   const [s, setS] = useState<StatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
+    setLoading(true);
     getStats()
       .then((x) => alive && setS(x))
-      .catch(() => alive && setS(null));
+      .catch(() => alive && setS(null))
+      .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
   }, [refreshKey]);
+
+  // First paint, before stats land: show shimmer placeholders so the layout
+  // doesn't pop in. Once loaded, an empty ledger (total === 0) renders nothing.
+  if (loading && !s) {
+    return (
+      <div className="stat-grid" style={{ marginTop: 20 }} aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <div className="glass stat stat-skel" key={i}>
+            <div className="skel-num" />
+            <div className="skel-lbl" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (!s || s.total === 0) return null;
 

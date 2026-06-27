@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ComplaintForm } from "../components/ComplaintForm";
 import { ResultsPanel } from "../components/ResultsPanel";
 import { StatsCard } from "../components/StatsCard";
+import { Toast } from "../components/Toast";
 import { resolve } from "../api/client";
 import type { ResolveResponse } from "../types";
 
@@ -10,13 +11,18 @@ export function DemoPage() {
   const [result, setResult] = useState<ResolveResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statsKey, setStatsKey] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
 
   async function handleResolve(message: string, customerId: string) {
     setLoading(true);
     setError(null);
     try {
-      setResult(await resolve(message, customerId));
+      const r = await resolve(message, customerId);
+      setResult(r);
       setStatsKey((k) => k + 1);
+      if (r.email_fired) {
+        setToast(`Email sent to ${r.customer_id}${r.audit_id ? ` · logged ${r.audit_id}` : ""}`);
+      }
     } catch (e) {
       setResult(null);
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -66,6 +72,8 @@ export function DemoPage() {
           Enter a complaint, question, or scenario chip above to run the pipeline.
         </div>
       )}
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

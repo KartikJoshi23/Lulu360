@@ -1,11 +1,33 @@
 import type { EconomistOut } from "../types";
 import { Badge } from "./Badge";
 import { ACTION_SEVERITY, ACTION_LABEL, REFUND_TYPE_LABEL } from "../constants";
+import { ruleTrace, wasEscalationOverride } from "../ruleTrace";
 
 export function EconomistCard({ e }: { e: EconomistOut }) {
+  const trace = ruleTrace(e.reason);
+  const escalated = wasEscalationOverride(e.reason);
+
   return (
     <div className="glass card">
       <h3><span className="stage-no">3</span>Economist / Decision</h3>
+
+      {(trace || escalated) && (
+        <div className="rule-trace" title="Which decision rule fired (derived from the engine's reason)">
+          {trace && (
+            <span className="rule-tag">
+              <span className="rule-id">{trace.id}</span>
+              {trace.label}
+            </span>
+          )}
+          {escalated && (
+            <span className="rule-tag override">
+              <span className="rule-id">Valve</span>
+              Escalation override
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="kv">
         <span className="k">Action</span>
         <Badge label={ACTION_LABEL[e.action] ?? e.action} severity={ACTION_SEVERITY[e.action] ?? "neutral"} />

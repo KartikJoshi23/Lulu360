@@ -1,5 +1,6 @@
 import type { ResolveResponse } from "../types";
 import { ACTION_LABEL } from "../constants";
+import { CopyButton } from "./CopyButton";
 
 export function EmailPanel({ result }: { result: ResolveResponse }) {
   const email = result.voice.email;
@@ -19,9 +20,14 @@ export function EmailPanel({ result }: { result: ResolveResponse }) {
     );
   }
 
+  const fullEmail = `To: ${email.to}\nSubject: ${email.subject}\n\n${email.body}`;
+
   return (
     <div className="glass card">
-      <h3>Email triggered</h3>
+      <h3>
+        Email triggered
+        <span className="h3-actions"><CopyButton text={fullEmail} label="Copy email" /></span>
+      </h3>
       <div className="email">
         <div className="email-head">
           <span>New message</span>

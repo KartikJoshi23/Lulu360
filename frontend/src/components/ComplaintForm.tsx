@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { DEMO_PRESETS, getCustomers } from "../api/client";
 import type { CustomerCatalogEntry } from "../types";
 
@@ -9,6 +10,14 @@ interface Props {
 
 function snippet(s: string, n = 60) {
   return s.length > n ? s.slice(0, n).trimEnd() + "..." : s;
+}
+
+// The Reader's LSTM truncates input at MAXLEN=40 tokens (CLAUDE.md §5). Words
+// beyond that are never seen by the model, so we surface the count.
+const READER_MAXLEN = 40;
+function wordCount(s: string) {
+  const t = s.trim();
+  return t ? t.split(/\s+/).length : 0;
 }
 
 export function ComplaintForm({ loading, onResolve }: Props) {
@@ -53,6 +62,16 @@ export function ComplaintForm({ loading, onResolve }: Props) {
     const c = customerId.trim();
     if (m && c) onResolve(m, c);
   }
+
+  function onKey(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !loading) {
+      e.preventDefault();
+      submit();
+    }
+  }
+
+  const words = wordCount(message);
+  const overLimit = words > READER_MAXLEN;
 
   function loadPreset(p: { customer_id: string; message: string }) {
     setMessage(p.message);
@@ -119,8 +138,16 @@ export function ComplaintForm({ loading, onResolve }: Props) {
             className="input"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={onKey}
             placeholder="Paste or type the customer's message..."
           />
+          <div className="msg-meta">
+            <span className={`wordcount${overLimit ? " over" : ""}`}>
+              {words} word{words === 1 ? "" : "s"}
+              {overLimit && ` · Reader sees first ${READER_MAXLEN}`}
+            </span>
+            <span className="kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
+          </div>
         </div>
         <div className="side-col">
           <div className="field">
