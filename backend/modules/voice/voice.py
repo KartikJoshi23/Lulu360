@@ -48,10 +48,23 @@ def _audit_path() -> str:
 _audit_lock = threading.Lock()
 
 
+# Short topic phrase per issue type, so an acknowledgement names what the
+# customer actually raised instead of a generic "complaint".
+_ISSUE_TOPIC = {
+    "Billing": "billing concern",
+    "Delivery": "delivery problem",
+    "Damaged_Defective": "report of a damaged or faulty item",
+    "Refund_Return": "return request",
+    "Product_Quality": "product-quality concern",
+    "App_Technical": "technical issue",
+    "General_Query": "question",
+}
+
+
 # ===========================================================================
 # 1. describe_action - turn the structured decision into an instruction
 # ===========================================================================
-def describe_action(decision: dict) -> str:
+def describe_action(decision: dict, issue_type: str | None = None) -> str:
     """Internal phrasing of what we are offering. Used as the FLAN-T5
     instruction and as the backbone of the template fallback. This is NOT the
     customer-facing reply; it never leaks to the user verbatim."""
@@ -62,8 +75,10 @@ def describe_action(decision: dict) -> str:
         if "General_Query service inquiry" in reason:
             return ("answer the customer's service question helpfully, ask for "
                     "any missing details, and do not discuss compensation")
-        return ("politely acknowledge the complaint, show empathy, and offer "
-                "no compensation")
+        topic = _ISSUE_TOPIC.get(issue_type or "", "concern")
+        return (f"warmly acknowledge the customer's {topic}, show genuine empathy, "
+                f"reassure them it has been logged for our team to review, and offer "
+                f"no compensation or specific promise")
     if action == E.COUPON:
         return (f"apologise and offer a {int(decision['coupon_percent'])}% "
                 f"discount coupon on the next order")
@@ -181,59 +196,154 @@ def _is_degenerate(text: str) -> bool:
 
 def _low_quality(text: str, decision: dict) -> bool:
     """True if the generated reply is not safe to send -> caller falls back to
-    the deterministic template. flan-t5-small is weak, so this gate is the
-    practical guarantee behind Trap 14."""
-    if len(text) < 15 or _is_degenerate(text):
+    the deterministic template. FLAN-T5 is uneven, so this gate is the practical
+    guarantee behind Trap 14: a thin, generic, or incomplete reply (e.g. a bare
+    'I'm sorry to hear that.') is rejected in favour of the curated template, so
+    every customer gets a substantive, on-brand reply."""
+    low = text.lower().strip()
+    words = low.split()
+    # Substance floor: a real two-sentence reply, not a one-liner.
+    if len(text.strip()) < 60 or len(words) < 12 or _is_degenerate(text):
         return True
     action = decision["action"]
     if action == E.ACKNOWLEDGE and _violates_acknowledge(text):
         return True
     remedy = _REMEDY_WORDS.get(action)
-    if remedy and not any(w in text.lower() for w in remedy):
+    if remedy and not any(w in low for w in remedy):
         return True   # money action that never names the remedy
+    # A refund reply must also tell the customer the logistics, or it is
+    # incomplete — the template always states pickup vs keep-the-item.
+    if action == E.REFUND:
+        if decision.get("refund_type") == E.PICKUP:
+            if not any(w in low for w in ("pick up", "pickup", "collect", "courier")):
+                return True
+        else:  # KEEP_ITEM
+            if not any(w in low for w in ("keep", "dispose", "no need to return",
+                                          "not need to return", "don't need to return")):
+                return True
     return False
 
 
-def generate_reply(decision: dict, message: str) -> str:
+def generate_reply(decision: dict, message: str, issue_type: str | None = None) -> str:
     """Produce the customer-facing reply for any action. Always returns a
-    non-empty, courteous string."""
-    gen = _load_generator()
-    template = _template_reply(decision, message)
+    non-empty, courteous, substantive string.
 
-    if gen is None:
+    `issue_type` (the Reader's classification) lets both the FLAN prompt and the
+    template name the customer's actual problem. It is optional and additive, so
+    older callers that pass only (decision, message) still work."""
+    template = _template_reply(decision, message, issue_type)
+    action = decision["action"]
+    gen = _load_generator()
+
+    # FLAN-T5 only writes the MONEY replies (coupon/refund/wallet credit). There a
+    # concrete remedy anchors the generation, so it stays on-topic and the gate can
+    # verify it. ACKNOWLEDGE/ESCALATE carry no remedy to anchor a small model, so
+    # they use the curated, issue-aware template — this prevents the model drifting
+    # onto the wrong topic (e.g. talking about an invoice on a delivery complaint).
+    if gen is None or action not in E.EMAIL_ACTIONS:
         return template
 
-    instruction = describe_action(decision)
-    # Few-shot: FLAN-T5 is tuned for short answers and goes terse/generic on a
-    # bare instruction. One worked example teaches it the length, warmth, and to
-    # name the remedy explicitly.
+    instruction = describe_action(decision, issue_type)
+    # Few-shot: two worked MONEY examples teach length, warmth, and naming both the
+    # remedy and the next step — so the model never emits a one-line apology.
     prompt = (
-        "You are a Lulu customer-support agent. Write a warm, empathetic reply "
-        "of two sentences that clearly states what we are offering.\n\n"
+        "You are a Lulu Hypermarket customer-support agent. Write a warm, "
+        "empathetic reply of two to three full sentences that clearly states the "
+        "remedy we are giving the customer and the next step. Do not be terse.\n\n"
         "Complaint: My grocery delivery was two days late.\n"
         "Offer: apologise and offer a 20% discount coupon on the next order.\n"
         "Reply: We're truly sorry your delivery arrived two days late - that is "
         "not the experience we want for you. As an apology, we've added a 20% "
-        "discount coupon to your account for your next order.\n\n"
+        "discount coupon to your account for your next order, and a confirmation "
+        "is on its way to your email.\n\n"
+        "Complaint: The blender I bought stopped working after one use.\n"
+        "Offer: apologise and confirm a full refund; we will arrange a free pickup "
+        "of the item.\n"
+        "Reply: We're so sorry your blender stopped working - that is not the "
+        "quality you should expect from Lulu. We've approved a full refund, and our "
+        "courier will collect the item from you at a time that suits you, with a "
+        "confirmation on its way to your email.\n\n"
         f"Complaint: {message}\n"
         f"Offer: {instruction}.\n"
         "Reply:"
     )
     try:
-        out = gen(prompt, max_new_tokens=120)
+        out = gen(prompt, max_new_tokens=140)
     except Exception as exc:
         print(f"[voice] generation failed, using template: {exc}")
         return template
 
-    # Quality gate: weak/degenerate output, an ACKNOWLEDGE that leaked an offer,
-    # or a money reply that never names the remedy -> fall back to the
-    # guaranteed-safe template (Trap 14). Customer-facing text must be reliable.
+    # Quality gate: a thin/generic/incomplete reply, or a money reply that never
+    # names the remedy (or refund logistics) -> fall back to the curated template
+    # (Trap 14). Customer-facing text must be reliable and substantive.
     if _low_quality(out, decision):
         return template
     return out
 
 
-def _template_reply(decision: dict, message: str) -> str:
+# Issue-aware acknowledgement replies: courteous, specific to what the customer
+# raised, and PROMISE NOTHING (no money, no remedy). Each names the concern and a
+# review next-step, so an ACKNOWLEDGE never reads as a dismissive one-liner.
+_ACK_BY_ISSUE = {
+    "Billing": (
+        "Thank you for bringing this billing concern to our attention. We've "
+        "logged the details of the charge you flagged, and our customer-care team "
+        "will review the invoice on your account carefully. While we can't confirm "
+        "an adjustment in this message, we'll make sure it is looked into properly "
+        "and that you hear back from us. We truly appreciate your patience and "
+        "value your trust in Lulu."
+    ),
+    "Delivery": (
+        "Thank you for letting us know about your delivery. We've recorded the "
+        "details of this order so our team can look into exactly what happened. "
+        "We can't promise a specific outcome here, but your feedback goes straight "
+        "to the people who can put it right. We appreciate you raising it and "
+        "value you as a Lulu customer."
+    ),
+    "Damaged_Defective": (
+        "Thank you for taking the time to tell us about the condition of your "
+        "item. We've noted the issue on your account and shared it with our quality "
+        "team for review. We're not able to confirm a resolution in this message, "
+        "but feedback like yours genuinely helps us do better. We appreciate your "
+        "patience and value your trust in Lulu."
+    ),
+    "Refund_Return": (
+        "Thank you for reaching out about your return. We've logged your request "
+        "and our team will review it against your order history in detail. We can't "
+        "confirm an outcome here, but we'll make sure it is handled properly and "
+        "that you hear back from us. We appreciate your patience and value your "
+        "continued trust in Lulu."
+    ),
+    "Product_Quality": (
+        "Thank you for sharing your concerns about the product. We've recorded your "
+        "feedback and passed it to our quality and merchandising teams for review. "
+        "We're not able to offer a specific resolution in this message, but input "
+        "like yours is exactly how we raise our standards. We appreciate your "
+        "patience and value you as a Lulu customer."
+    ),
+    "App_Technical": (
+        "Thank you for reporting this technical issue. We've logged the problem you "
+        "described so our digital team can investigate it properly. We can't promise "
+        "an immediate fix here, but your report helps us make the Lulu app and "
+        "website better for everyone. We appreciate your patience and value your "
+        "feedback."
+    ),
+}
+
+_ACK_DEFAULT = (
+    "Thank you for reaching out and sharing this with us. We have reviewed the "
+    "details available on your account and logged your feedback for our care team. "
+    "We are unable to apply a remedy on this request, but we appreciate you giving "
+    "Lulu the chance to review it and support you better next time."
+)
+
+
+def _acknowledge_reply(issue_type: str | None) -> str:
+    """A courteous, issue-specific acknowledgement that promises nothing."""
+    return _ACK_BY_ISSUE.get(issue_type or "", _ACK_DEFAULT)
+
+
+def _template_reply(decision: dict, message: str, issue_type: str | None = None) -> str:
     """Deterministic, offline reply. The contractually safe fallback and the
     text the tests assert against (run with LULU_DISABLE_FLAN=1)."""
     action = decision["action"]
@@ -242,12 +352,8 @@ def _template_reply(decision: dict, message: str) -> str:
     if action == E.ACKNOWLEDGE:
         if "General_Query service inquiry" in reason:
             return _inquiry_reply(message)
-        # The hardest reply: courteous, non-accusatory, PROMISES NOTHING.
-        return ("Thank you for reaching out and sharing this with us. We have "
-                "reviewed the details available on your account and logged your "
-                "feedback for our care team. We are unable to apply a remedy on "
-                "this request, but we appreciate you giving Lulu the chance to "
-                "review it and support you better next time.")
+        # Courteous, non-accusatory, issue-specific, PROMISES NOTHING.
+        return _acknowledge_reply(issue_type)
 
     if action == E.COUPON:
         pct = int(decision["coupon_percent"])

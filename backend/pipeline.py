@@ -42,7 +42,7 @@ def resolve(message: str, customer_id: str) -> dict:
     reader = read_message(message)                       # Module 1
     verdict = investigate(reader, profile)               # Module 2
     decision = decide(verdict, reader, profile)          # Module 3
-    reply = voice.generate_reply(decision, message)           # Module 4
+    reply = voice.generate_reply(decision, message, issue_type=reader["issue_type"])  # Module 4
     email, audit_id = voice.fire_email(profile, decision, reply)  # Module 4 + audit
 
     return {
