@@ -69,14 +69,49 @@ LOW_CONFIDENCE = 0.5            # Reader confidence floor for the escalation val
 
 
 # ===========================================================================
+# Defensive coercion — the profile is a pandas row cast to a dict. On clean data
+# pandas infers bool/int/float, but a single dirty cell ("False" as text, "Yes",
+# an empty string, or NaN) would silently break a raw read: a non-empty string is
+# truthy, and NaN is truthy, so `if p["is_perishable_or_hygiene"]` could invert
+# the logistics. These mirror the Investigator's coercion so both engines are
+# equally robust. They are no-ops on the current clean data.
+# ===========================================================================
+def _truthy(v) -> bool:
+    """Real bool from a CSV/NumPy/string value. 'false'/'no'/''/NaN -> False."""
+    if isinstance(v, str):
+        return v.strip().lower() in ("true", "1", "yes", "y")
+    if v is None:
+        return False
+    try:
+        f = float(v)
+        return False if f != f else bool(f)   # f != f catches NaN
+    except (TypeError, ValueError):
+        return bool(v)
+
+
+def _num(v, default: float = 0.0) -> float:
+    """Float from any value; None/NaN/''/garbage -> default so a comparison can
+    neither crash (str vs int) nor misbehave on a dirty cell."""
+    if v is None or v == "":
+        return default
+    try:
+        f = float(v)
+        return default if f != f else f
+    except (TypeError, ValueError):
+        return default
+
+
+# ===========================================================================
 # 1. value_band — customer value classification (never grants trust)
 # ===========================================================================
 def value_band(p: dict) -> str:
+    tier = str(p.get("loyalty_tier", ""))
+    clv = _num(p.get("clv_estimate"))
     # Platinum or very high lifetime value -> HIGH
-    if p["loyalty_tier"] == TIER_PLATINUM or p["clv_estimate"] >= 40000:
+    if tier == TIER_PLATINUM or clv >= 40000:
         return VALUE_HIGH
     # Gold/Silver or moderate CLV -> MEDIUM
-    if p["loyalty_tier"] in (TIER_GOLD, TIER_SILVER) or p["clv_estimate"] >= 12000:
+    if tier in (TIER_GOLD, TIER_SILVER) or clv >= 12000:
         return VALUE_MEDIUM
     # Everything else -> LOW
     return VALUE_LOW
@@ -87,13 +122,14 @@ def value_band(p: dict) -> str:
 # ===========================================================================
 def refund_logistics(p: dict) -> str:
     # 1) Perishable / hygiene goods cannot be resold -> collecting is pure waste.
-    if p["is_perishable_or_hygiene"]:
+    if _truthy(p.get("is_perishable_or_hygiene")):
         return REFUND_KEEP_ITEM
+    resale = _num(p.get("resale_value"))
     # 2) Costly resalable goods always worth recovering.
-    if p["resale_value"] >= HIGH_RESALE_THRESHOLD:
+    if resale >= HIGH_RESALE_THRESHOLD:
         return REFUND_PICKUP
     # 3) Weigh freight against recoverable value.
-    if p["reverse_logistics_cost"] > p["resale_value"]:
+    if _num(p.get("reverse_logistics_cost")) > resale:
         return REFUND_KEEP_ITEM   # shipping it back costs more than it is worth
     return REFUND_PICKUP
 
@@ -103,10 +139,10 @@ def refund_logistics(p: dict) -> str:
 # ===========================================================================
 def should_escalate(verdict: dict, reader: dict, p: dict, proposed_refund: bool) -> bool:
     # Large money + uncertain trust -> warrants a human's eyes.
-    if proposed_refund and verdict["genuineness"] == SUSPICIOUS and p["order_value"] > ESCALATE_ORDER_VALUE:
+    if proposed_refund and verdict["genuineness"] == SUSPICIOUS and _num(p.get("order_value")) > ESCALATE_ORDER_VALUE:
         return True
     # Unsure about a valuable customer -> risks a costly wrong call.
-    if reader["confidence"] < LOW_CONFIDENCE and value_band(p) == VALUE_HIGH:
+    if _num(reader.get("confidence")) < LOW_CONFIDENCE and value_band(p) == VALUE_HIGH:
         return True
     return False
 
@@ -173,7 +209,7 @@ def choose_action(verdict: dict, reader: dict, p: dict):
         return ACTION_ACKNOWLEDGE, 0, 0, "genuineness LIKELY_ABUSER -> acknowledge only, abuse never pays"
 
     # 4) New account / first purchase — generous but capped.
-    if p["is_first_purchase"] or p["account_age_months"] <= NEW_ACCOUNT_MAX_MONTHS:
+    if _truthy(p.get("is_first_purchase")) or _num(p.get("account_age_months")) <= NEW_ACCOUNT_MAX_MONTHS:
         return ACTION_COUPON, COUPON_STANDARD, 0, "new/first-purchase account -> generous-but-capped coupon, verify"
 
     # 5) GENUINE + clear product failure -> REFUND.

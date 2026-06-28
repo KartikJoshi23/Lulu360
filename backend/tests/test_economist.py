@@ -238,3 +238,30 @@ def test_refund_logistics():
     assert refund_logistics(PROFILES["C0013"]) == REFUND_PICKUP      # resale 34890
     assert refund_logistics(PROFILES["C0032"]) == REFUND_KEEP_ITEM   # freight 180 > 164
     assert refund_logistics(PROFILES["C0006"]) == REFUND_PICKUP      # resale 200 > freight 121
+
+
+# ===========================================================================
+# Robustness: a dirty profile cell must not silently invert a decision.
+# A raw `if p["is_perishable_or_hygiene"]` would read the STRING "False" (and
+# NaN) as truthy; the coercion guards against that without changing clean-data
+# behaviour.
+# ===========================================================================
+def test_dirty_boolean_cells_do_not_invert_logistics():
+    nan = float("nan")
+    # perishable as the literal string "False" -> must NOT force KEEP_ITEM
+    p_str = {"is_perishable_or_hygiene": "False", "resale_value": 50, "reverse_logistics_cost": 10}
+    assert refund_logistics(p_str) == REFUND_PICKUP
+    # perishable as NaN -> same
+    p_nan = {"is_perishable_or_hygiene": nan, "resale_value": 50, "reverse_logistics_cost": 10}
+    assert refund_logistics(p_nan) == REFUND_PICKUP
+    # "True"/"yes" still read as perishable
+    assert refund_logistics({"is_perishable_or_hygiene": "True", "resale_value": 50,
+                             "reverse_logistics_cost": 10}) == REFUND_KEEP_ITEM
+
+
+def test_dirty_first_purchase_string_does_not_fire_newbie_rule():
+    # is_first_purchase as "False" must not wrongly trigger Rule 4 (newbie coupon);
+    # this calm genuine Platinum defect must still resolve to Rule 5 REFUND.
+    p = dict(PROFILES["C0018"], is_first_purchase="False")
+    d = decide(verdict(GENUINE, UNVERIFIED), reader(ISSUE_DAMAGED_DEFECTIVE, "Low"), p)
+    assert d["action"] == ACTION_REFUND
