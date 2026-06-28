@@ -1,0 +1,32 @@
+{
+  "issue_to_id": {
+    "App_Technical": 0,
+    "Billing": 1,
+    "Damaged_Defective": 2,
+    "Delivery": 3,
+    "General_Query": 4,
+    "Product_Quality": 5,
+    "Refund_Return": 6
+  },
+  "id_to_issue": {
+    "0": "App_Technical",
+    "1": "Billing",
+    "2": "Damaged_Defective",
+    "3": "Delivery",
+    "4": "General_Query",
+    "5": "Product_Quality",
+    "6": "Refund_Return"
+  },
+  "frust_to_id": {
+    "High": 0,
+    "Low": 1,
+    "Medium": 2
+  },
+  "id_to_frust": {
+    "0": "High",
+    "1": "Low",
+    "2": "Medium"
+  },
+  "VOCAB": 3000,
+  "MAXLEN": 40
+}
