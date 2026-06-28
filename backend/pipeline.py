@@ -31,19 +31,28 @@ from backend.modules.economist.economist import decide             # noqa: E402
 from backend.modules.voice import voice                            # noqa: E402
 
 
-def resolve(message: str, customer_id: str) -> dict:
+def resolve(message: str, customer_id: str, fast: bool = False,
+            reader: dict | None = None) -> dict:
     """Run the full pipeline for one complaint and return the consolidated
     response. Raises KeyError(customer_id) for an unknown customer so the API
-    can answer 404."""
+    can answer 404.
+
+    `fast=True` skips FLAN-T5 and uses the deterministic template Voice — used by
+    the batch sweep so hundreds of cases resolve in seconds.
+    `reader` lets the batch sweep pass a pre-computed (batched) Reader output so
+    the LSTM predicts the whole dataset in one pass instead of once per message."""
     profile = lookup_profile(customer_id)
     if profile is None:
         raise KeyError(customer_id)
 
-    reader = read_message(message)                       # Module 1
+    if reader is None:
+        reader = read_message(message)                   # Module 1
     verdict = investigate(reader, profile)               # Module 2
     decision = decide(verdict, reader, profile)          # Module 3
-    reply = voice.generate_reply(decision, message, issue_type=reader["issue_type"])  # Module 4
-    email, audit_id = voice.fire_email(profile, decision, reply)  # Module 4 + audit
+    reply = voice.generate_reply(decision, message,
+                                 issue_type=reader["issue_type"],
+                                 use_model=not fast)      # Module 4
+    email, audit_id = voice.fire_email(profile, decision, reply, message)  # Module 4 + audit
 
     return {
         "customer_id": str(customer_id),

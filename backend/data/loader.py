@@ -72,6 +72,14 @@ def _load_messages():
     return _messages
 
 
+def all_messages():
+    """Every (customer_id, text) pair in messages.csv, for the batch sweep that
+    runs the whole dataset through the pipeline."""
+    msgs = _load_messages()
+    return [(str(r.customer_id), str(r.text))
+            for r in msgs.itertuples(index=False)]
+
+
 def message_catalog():
     """Every customer that has at least one complaint, with their loyalty tier
     and their real messages from messages.csv. Powers the dashboard's customer /

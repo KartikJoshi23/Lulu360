@@ -83,5 +83,11 @@ export interface AuditRow {
   refund_type: string;
   coupon_percent: number;
   wallet_credit: number;
+  message?: string;
+  reply_text?: string;
   email: EmailOut;
+}
+
+export interface RunAllSummary extends StatsResponse {
+  messages_processed: number;
 }

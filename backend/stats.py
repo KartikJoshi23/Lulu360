@@ -47,6 +47,14 @@ def record_resolution(result: dict) -> None:
             fh.write(json.dumps(row) + "\n")
 
 
+def clear_log() -> None:
+    """Truncate the resolutions log so the next aggregate reflects a fresh run."""
+    path = _resolutions_log()
+    with _lock:
+        if os.path.exists(path):
+            open(path, "w", encoding="utf-8").close()
+
+
 def _read_rows() -> list:
     path = _resolutions_log()
     if not os.path.exists(path):

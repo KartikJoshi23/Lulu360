@@ -149,3 +149,36 @@ def read_message(text: str) -> dict:
         }
 
     return _kw_read(text)
+
+
+def read_messages(texts) -> list:
+    """Batch version of read_message: ONE model.predict over the whole list, so a
+    sweep of hundreds of messages runs in seconds instead of one slow call each.
+    Returns reader dicts aligned to `texts`; empty/blank inputs default safely."""
+    texts = list(texts)
+    out: list = [None] * len(texts)
+
+    if ACTIVE_BACKEND != "lstm":
+        for i, t in enumerate(texts):
+            out[i] = _kw_read(t) if (t and str(t).strip()) else \
+                {"issue_type": "General_Query", "frustration": "Low", "confidence": 0.0}
+        return out
+
+    nonempty = [(i, str(t)) for i, t in enumerate(texts) if t and str(t).strip()]
+    for i, t in enumerate(texts):
+        if not (t and str(t).strip()):
+            out[i] = {"issue_type": "General_Query", "frustration": "Low", "confidence": 0.0}
+
+    if nonempty:
+        seqs = _pad(_tok.texts_to_sequences([t for _, t in nonempty]), maxlen=_MAXLEN)
+        issue_probs = _issue_model.predict(seqs, verbose=0)   # (N, 7)
+        frust_probs = _frust_model.predict(seqs, verbose=0)   # (N, 3)
+        for k, (i, _) in enumerate(nonempty):
+            ii = int(issue_probs[k].argmax())
+            fi = int(frust_probs[k].argmax())
+            out[i] = {
+                "issue_type": str(_id_to_issue[ii]),
+                "frustration": str(_id_to_frust[fi]),
+                "confidence": round(float(issue_probs[k][ii]), 3),
+            }
+    return out

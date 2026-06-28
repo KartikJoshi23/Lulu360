@@ -94,6 +94,30 @@ def resolve_endpoint(req: ResolveRequest):
     return result
 
 
+@app.post("/run-all")
+def run_all():
+    """Run EVERY complaint in messages.csv through the pipeline in one batch, so
+    the KPIs and audit trail reflect the whole dataset. Resets both logs first so
+    the result is exactly this run (not an accumulation). Uses the fast template
+    Voice (no FLAN) so hundreds of cases complete in seconds; the audit row still
+    stores each message + reply + the triggered email."""
+    voice.clear_audit_log()
+    stats.clear_log()
+    pairs = loader.all_messages()                       # [(customer_id, text), ...]
+    readers = reader.read_messages([t for _, t in pairs])  # ONE batched LSTM pass
+    processed = 0
+    for (cid, message), rd in zip(pairs, readers):
+        try:
+            result = resolve(message, cid, fast=True, reader=rd)
+            stats.record_resolution(result)
+            processed += 1
+        except Exception:  # pragma: no cover - one bad row must not abort the batch
+            continue
+    summary = stats.compute_stats()
+    summary["messages_processed"] = int(processed)
+    return summary
+
+
 @app.get("/customers", response_model=list[CustomerCatalogEntry])
 def customers():
     """The customer + message catalog for the dashboard picker: every customer

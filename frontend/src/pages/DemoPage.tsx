@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ComplaintForm } from "../components/ComplaintForm";
 import { ResultsPanel } from "../components/ResultsPanel";
 import { StatsCard } from "../components/StatsCard";
+import { RunAllButton } from "../components/RunAllButton";
 import { Toast } from "../components/Toast";
 import { resolve } from "../api/client";
 import type { ResolveResponse } from "../types";
@@ -40,6 +41,8 @@ export function DemoPage() {
       </p>
 
       <StatsCard refreshKey={statsKey} />
+
+      <RunAllButton onDone={() => setStatsKey((k) => k + 1)} />
 
       <ComplaintForm loading={loading} onResolve={handleResolve} />
 

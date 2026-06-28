@@ -7,6 +7,7 @@ import type {
   StatsResponse,
   AuditRow,
   CustomerCatalogEntry,
+  RunAllSummary,
 } from "../types";
 import { DEMO_DATA, DEMO_PRESETS } from "../demoData";
 
@@ -56,6 +57,8 @@ function demoAudit(): AuditRow[] {
       refund_type: r.economist.refund_type,
       coupon_percent: r.economist.coupon_percent,
       wallet_credit: r.economist.wallet_credit,
+      message: r.message,
+      reply_text: r.voice.reply_text,
       email: r.voice.email!,
     }));
 }
@@ -92,6 +95,17 @@ export async function getAudit(): Promise<AuditRow[]> {
   if (DEMO_MODE) return demoAudit();
   const { audit_log } = await getJSON<{ audit_log: AuditRow[] }>("/audit");
   return audit_log;
+}
+
+export async function runAll(): Promise<RunAllSummary> {
+  if (DEMO_MODE) {
+    // No live backend in demo mode — report the fixtures as the "run".
+    const s = demoStats();
+    return { ...s, messages_processed: s.total };
+  }
+  const res = await fetch(`${BASE}/run-all`, { method: "POST" });
+  if (!res.ok) throw new ApiError(res.status, `Run-all failed (${res.status})`);
+  return res.json() as Promise<RunAllSummary>;
 }
 
 export async function getCustomers(): Promise<CustomerCatalogEntry[]> {

@@ -224,13 +224,17 @@ def _low_quality(text: str, decision: dict) -> bool:
     return False
 
 
-def generate_reply(decision: dict, message: str, issue_type: str | None = None) -> str:
+def generate_reply(decision: dict, message: str, issue_type: str | None = None,
+                   use_model: bool = True) -> str:
     """Produce the customer-facing reply for any action. Always returns a
     non-empty, courteous, substantive string.
 
     `issue_type` (the Reader's classification) lets both the FLAN prompt and the
     template name the customer's actual problem. It is optional and additive, so
-    older callers that pass only (decision, message) still work."""
+    older callers that pass only (decision, message) still work.
+
+    `use_model=False` forces the deterministic template path (skips FLAN) — used
+    by the batch 'run all' sweep so hundreds of cases resolve quickly."""
     template = _template_reply(decision, message, issue_type)
     action = decision["action"]
     gen = _load_generator()
@@ -240,7 +244,7 @@ def generate_reply(decision: dict, message: str, issue_type: str | None = None) 
     # verify it. ACKNOWLEDGE/ESCALATE carry no remedy to anchor a small model, so
     # they use the curated, issue-aware template — this prevents the model drifting
     # onto the wrong topic (e.g. talking about an invoice on a delivery complaint).
-    if gen is None or action not in E.EMAIL_ACTIONS:
+    if gen is None or not use_model or action not in E.EMAIL_ACTIONS:
         return template
 
     instruction = describe_action(decision, issue_type)
@@ -507,13 +511,16 @@ def _next_audit_id() -> str:
     return f"A{n + 1:04d}"
 
 
-def fire_email(profile: dict, decision: dict, reply_text: str = ""):
+def fire_email(profile: dict, decision: dict, reply_text: str = "", message: str = ""):
     """Compose and 'send' the confirmation email when (and only when)
     email_trigger is True, and write one append-only audit row.
 
     Returns (email_dict, audit_id) or (None, None).  The audit_id is assigned
     inside the lock so it is always correct even under concurrent requests, and
     returned directly so callers never need to re-read the log to find it.
+
+    The audit row also stores the original `message` and the generated
+    `reply_text`, so the dashboard's audit page can show the full case detail.
 
     The Voice obeys decision['email_trigger']; it never recomputes the rule
     (Integration Rule 9). ACKNOWLEDGE and ESCALATE carry email_trigger=False
@@ -541,6 +548,8 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
             "refund_type": decision.get("refund_type", E.NONE),
             "coupon_percent": int(decision.get("coupon_percent", 0)),
             "wallet_credit": int(decision.get("wallet_credit", 0)),
+            "message": str(message),
+            "reply_text": str(reply_text),
             "email": email,
         }
         path = _audit_path()
@@ -549,6 +558,15 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
             fh.write(json.dumps(record) + "\n")
 
     return email, audit_id
+
+
+def clear_audit_log():
+    """Truncate the audit trail. Used by the batch 'run all' sweep so the audit
+    page reflects exactly that run rather than accumulating across runs."""
+    path = _audit_path()
+    with _audit_lock:
+        if os.path.exists(path):
+            open(path, "w", encoding="utf-8").close()
 
 
 def read_audit_log():
