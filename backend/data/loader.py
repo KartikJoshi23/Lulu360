@@ -18,6 +18,7 @@ _MESSAGES_CSV = os.path.join(_DATA_DIR, "messages.csv")
 
 _customers = None
 _messages = None
+_index = None   # normalised customer_id -> raw row dict, built once
 
 
 def _load():
@@ -30,6 +31,19 @@ def _load():
     return _customers
 
 
+def _profile_index():
+    """customer_id -> raw row dict, keyed by the normalised id. Built once so
+    lookup is O(1); the batch sweep does hundreds of lookups."""
+    global _index
+    if _index is None:
+        df = _load()
+        _index = {
+            str(rec["customer_id"]).strip().upper(): rec
+            for rec in df.to_dict("records")
+        }
+    return _index
+
+
 def lookup_profile(customer_id: str):
     """Return one customer row as a JSON-safe dict, or None if unknown.
     NumPy scalars are cast to native Python types (Integration Rule 2).
@@ -39,11 +53,9 @@ def lookup_profile(customer_id: str):
     if customer_id is None:
         return None
     cid = str(customer_id).strip().upper()
-    df = _load()
-    row = df[df.customer_id == cid]
-    if len(row) == 0:
+    raw = _profile_index().get(cid)
+    if raw is None:
         return None
-    raw = row.iloc[0].to_dict()
     return {k: _py(v) for k, v in raw.items()}
 
 

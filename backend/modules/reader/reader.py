@@ -19,11 +19,17 @@ Use reader.ACTIVE_BACKEND to see which path is live ("lstm" or "keyword").
 
 import os
 import sys
+import threading
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 from shared import enums as E  # noqa: E402
+
+# FastAPI runs sync endpoints in a threadpool, so /run-all's batch predict and a
+# concurrent /resolve can hit the same Keras model from two threads. Keras
+# predict is not guaranteed thread-safe, so serialise inference.
+_predict_lock = threading.Lock()
 
 _MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "models")
 _REQUIRED_ARTIFACTS = (
@@ -137,10 +143,11 @@ def read_message(text: str) -> dict:
 
     if ACTIVE_BACKEND == "lstm":
         seq = _pad(_tok.texts_to_sequences([text]), maxlen=_MAXLEN)
-        issue_probs = _issue_model.predict(seq, verbose=0)[0]
+        with _predict_lock:
+            issue_probs = _issue_model.predict(seq, verbose=0)[0]
+            frust_probs = _frust_model.predict(seq, verbose=0)[0]
         issue_idx = int(issue_probs.argmax())
         confidence = float(issue_probs[issue_idx])
-        frust_probs = _frust_model.predict(seq, verbose=0)[0]
         frust_idx = int(frust_probs.argmax())
         return {
             "issue_type": str(_id_to_issue[issue_idx]),
@@ -171,8 +178,9 @@ def read_messages(texts) -> list:
 
     if nonempty:
         seqs = _pad(_tok.texts_to_sequences([t for _, t in nonempty]), maxlen=_MAXLEN)
-        issue_probs = _issue_model.predict(seqs, verbose=0)   # (N, 7)
-        frust_probs = _frust_model.predict(seqs, verbose=0)   # (N, 3)
+        with _predict_lock:
+            issue_probs = _issue_model.predict(seqs, verbose=0)   # (N, 7)
+            frust_probs = _frust_model.predict(seqs, verbose=0)   # (N, 3)
         for k, (i, _) in enumerate(nonempty):
             ii = int(issue_probs[k].argmax())
             fi = int(frust_probs[k].argmax())

@@ -237,14 +237,18 @@ def generate_reply(decision: dict, message: str, issue_type: str | None = None,
     by the batch 'run all' sweep so hundreds of cases resolve quickly."""
     template = _template_reply(decision, message, issue_type)
     action = decision["action"]
-    gen = _load_generator()
 
     # FLAN-T5 only writes the MONEY replies (coupon/refund/wallet credit). There a
     # concrete remedy anchors the generation, so it stays on-topic and the gate can
     # verify it. ACKNOWLEDGE/ESCALATE carry no remedy to anchor a small model, so
     # they use the curated, issue-aware template — this prevents the model drifting
     # onto the wrong topic (e.g. talking about an invoice on a delivery complaint).
-    if gen is None or not use_model or action not in E.EMAIL_ACTIONS:
+    # Decide BEFORE touching the generator so batch/template mode and every
+    # acknowledgement never pay the model-load cost.
+    if not use_model or action not in E.EMAIL_ACTIONS:
+        return template
+    gen = _load_generator()
+    if gen is None:
         return template
 
     instruction = describe_action(decision, issue_type)
