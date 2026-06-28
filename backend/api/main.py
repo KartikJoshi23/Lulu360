@@ -35,17 +35,29 @@ from shared.schemas import (                               # noqa: E402
 
 app = FastAPI(title="LuluCare 360 API", version="1.0")
 
-# Allowed origins: the deployed Netlify site (via env) + local dev.
+# Allowed origins: the deployed frontend (via env) + local dev. FRONTEND_ORIGIN
+# is the generic name; NETLIFY_ORIGIN is still honoured for backwards
+# compatibility. Any extra comma-separated origins can be added via
+# EXTRA_CORS_ORIGINS.
+_explicit = os.environ.get("FRONTEND_ORIGIN") or os.environ.get(
+    "NETLIFY_ORIGIN", "https://lulucare360.netlify.app")
 _origins = [
-    os.environ.get("NETLIFY_ORIGIN", "https://lulucare360.netlify.app"),
+    _explicit,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+_origins += [o.strip() for o in os.environ.get("EXTRA_CORS_ORIGINS", "").split(",") if o.strip()]
+
+# The frontend is built and deployed on Vercel (see vercel.json), which serves
+# production and per-deploy preview URLs under *.vercel.app — and *.netlify.app
+# if hosted there. A regex covers those without pinning the exact subdomain, so
+# the live dashboard isn't silently blocked by CORS after a redeploy.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*(vercel\.app|netlify\.app)",
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

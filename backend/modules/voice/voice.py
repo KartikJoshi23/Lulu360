@@ -473,5 +473,8 @@ def read_audit_log():
     with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
             if line.strip():
-                rows.append(json.loads(line))
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue  # skip a corrupt/partial row rather than 500 /audit
     return rows

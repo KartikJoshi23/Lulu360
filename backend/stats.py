@@ -19,7 +19,13 @@ from datetime import datetime, timezone
 _DEFAULT_LOG = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "logs", "resolutions.jsonl")
 )
-RESOLUTIONS_LOG = os.environ.get("LULU_RESOLUTIONS_LOG", _DEFAULT_LOG)
+
+
+def _resolutions_log() -> str:
+    """Resolve the log path at call time so LULU_RESOLUTIONS_LOG changes (e.g.
+    set by tests) take effect regardless of module import order — mirrors
+    voice._audit_path()."""
+    return os.environ.get("LULU_RESOLUTIONS_LOG", _DEFAULT_LOG)
 
 _lock = threading.Lock()
 
@@ -34,17 +40,19 @@ def record_resolution(result: dict) -> None:
         "escalate": bool(econ.get("escalate", False)),
         "email_fired": bool(result.get("email_fired", False)),
     }
+    path = _resolutions_log()
     with _lock:
-        os.makedirs(os.path.dirname(RESOLUTIONS_LOG), exist_ok=True)
-        with open(RESOLUTIONS_LOG, "a", encoding="utf-8") as fh:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(row) + "\n")
 
 
 def _read_rows() -> list:
-    if not os.path.exists(RESOLUTIONS_LOG):
+    path = _resolutions_log()
+    if not os.path.exists(path):
         return []
     rows = []
-    with open(RESOLUTIONS_LOG, "r", encoding="utf-8") as fh:
+    with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
             if line.strip():
                 try:
