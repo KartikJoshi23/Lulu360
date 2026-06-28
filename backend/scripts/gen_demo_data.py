@@ -28,7 +28,7 @@ _PRESETS = [
     ("C0013", "Electronics defect", "The laptop I received is defective and the screen is broken."),
     ("C0001", "Serial refunder", "I demand my money back immediately, this is absolutely unacceptable!"),
     ("C0016", "First purchase", "My very first order still has not arrived, where is my package?"),
-    ("C0005", "Perishable order", "My fresh grocery order arrived damaged and spoiled."),
+    ("C0005", "Perishable order", "The groceries were spoiled and the packaging was badly damaged."),
     ("C0020", "Low-value query", "I have a small question, the app keeps loading slowly at checkout."),
     ("C0034", "Logged promise", "Your agent promised me a replacement on my last call about this order."),
     ("C0006", "Abuser + promise", "You assured me a replacement last time, I want it processed now."),

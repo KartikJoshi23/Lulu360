@@ -32,7 +32,7 @@ export const DEMO_PRESETS: DemoPreset[] = [
   {
     "customer_id": "C0005",
     "label": "Perishable order",
-    "message": "My fresh grocery order arrived damaged and spoiled."
+    "message": "The groceries were spoiled and the packaging was badly damaged."
   },
   {
     "customer_id": "C0020",
@@ -63,7 +63,20 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "GENUINE",
       "claim_status": "UNVERIFIED",
-      "reason": "GENUINE - low refund ratio 0.02, established account (20m), no abuse signals. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay."
+      "reason": "GENUINE - low refund ratio 0.02, established account (20m), no abuse signals. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay.",
+      "signals": {
+        "ratio": 0.021,
+        "kept": 0,
+        "burst": 0,
+        "age": 20,
+        "first_purchase": false,
+        "prior_contacts": 0,
+        "promise_logged": false
+      },
+      "flags": [
+        "NO_RECORD"
+      ],
+      "confidence": 0.929
     },
     "economist": {
       "action": "REFUND",
@@ -78,12 +91,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0018@example.com",
-        "subject": "Your Lulu refund is confirmed (ref A0024)",
-        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0024     Account: C0018\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+        "subject": "Your Lulu refund is confirmed (ref A0001)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0001     Account: C0018\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0024",
+    "audit_id": "A0001",
     "automation": {
       "escalated": false
     }
@@ -99,7 +112,18 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "GENUINE",
       "claim_status": "CONFIRMED",
-      "reason": "GENUINE - low refund ratio 0.00, established account (60m), no abuse signals. claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy)."
+      "reason": "GENUINE - low refund ratio 0.00, established account (60m), no abuse signals. claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy).",
+      "signals": {
+        "ratio": 0.0,
+        "kept": 0,
+        "burst": 0,
+        "age": 60,
+        "first_purchase": false,
+        "prior_contacts": 2,
+        "promise_logged": true
+      },
+      "flags": [],
+      "confidence": 0.95
     },
     "economist": {
       "action": "REFUND",
@@ -114,12 +138,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0013@example.com",
-        "subject": "Your Lulu refund is confirmed (ref A0025)",
-        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0025     Account: C0013\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+        "subject": "Your Lulu refund is confirmed (ref A0002)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0002     Account: C0013\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0025",
+    "audit_id": "A0002",
     "automation": {
       "escalated": false
     }
@@ -135,7 +159,22 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "LIKELY_ABUSER",
       "claim_status": "UNVERIFIED",
-      "reason": "LIKELY_ABUSER - refund ratio 0.83 >= 0.5; 4 complaints in 30 days (>= 4). claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay."
+      "reason": "LIKELY_ABUSER - refund ratio 0.83 >= 0.5; 4 complaints in 30 days (>= 4). claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay.",
+      "signals": {
+        "ratio": 0.833,
+        "kept": 2,
+        "burst": 4,
+        "age": 1,
+        "first_purchase": false,
+        "prior_contacts": 0,
+        "promise_logged": false
+      },
+      "flags": [
+        "ABUSE_RATIO",
+        "ABUSE_BURST",
+        "NO_RECORD"
+      ],
+      "confidence": 1.0
     },
     "economist": {
       "action": "ACKNOWLEDGE",
@@ -147,7 +186,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reason": "genuineness LIKELY_ABUSER -> acknowledge only, abuse never pays"
     },
     "voice": {
-      "reply_text": "Thank you for reaching out and for taking the time to share this with us. We have carefully reviewed your account and the details of your request. On this occasion we are not able to issue any compensation, but your feedback has been logged and we genuinely value you as a Lulu customer. Please don't hesitate to contact us about any future order.",
+      "reply_text": "Thank you for reaching out and sharing this with us. We have reviewed the details available on your account and logged your feedback for our care team. We are unable to apply a remedy on this request, but we appreciate you giving Lulu the chance to review it and support you better next time.",
       "email": null
     },
     "email_fired": false,
@@ -167,7 +206,22 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "SUSPICIOUS",
       "claim_status": "UNVERIFIED",
-      "reason": "SUSPICIOUS - first purchase; new account (0m old); 3 recent complaints. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay."
+      "reason": "SUSPICIOUS - first purchase; new account (0m old); 3 recent complaints. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay.",
+      "signals": {
+        "ratio": 0.0,
+        "kept": 0,
+        "burst": 3,
+        "age": 0,
+        "first_purchase": true,
+        "prior_contacts": 0,
+        "promise_logged": false
+      },
+      "flags": [
+        "NEW_FIRST_PURCHASE",
+        "NEW_ACCOUNT",
+        "NO_RECORD"
+      ],
+      "confidence": 0.6
     },
     "economist": {
       "action": "COUPON",
@@ -182,44 +236,61 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're sorry for the trouble this has caused. As an apology, we'd like to offer you a 20% discount coupon on your next order. The coupon details are on their way to your email - thank you for giving us the chance to make this right.",
       "email": {
         "to": "C0016@example.com",
-        "subject": "A 20% coupon has been added to your Lulu account (ref A0026)",
-        "body": "Dear valued Lulu customer,\n\nWe're sorry for the inconvenience this caused. As a gesture of goodwill, we've added a 20% discount coupon to your Lulu account.\n\nIt's valid on your next order for the next 30 days and will be applied automatically at checkout.\n\nReference: A0026     Account: C0016\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+        "subject": "A 20% coupon has been added to your Lulu account (ref A0003)",
+        "body": "Dear valued Lulu customer,\n\nWe're sorry for the inconvenience this caused. As a gesture of goodwill, we've added a 20% discount coupon to your Lulu account.\n\nIt's valid on your next order for the next 30 days and will be applied automatically at checkout.\n\nReference: A0003     Account: C0016\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0026",
+    "audit_id": "A0003",
     "automation": {
       "escalated": false
     }
   },
   "C0005": {
     "customer_id": "C0005",
-    "message": "My fresh grocery order arrived damaged and spoiled.",
+    "message": "The groceries were spoiled and the packaging was badly damaged.",
     "reader": {
-      "issue_type": "Delivery",
+      "issue_type": "Damaged_Defective",
       "frustration": "Low",
-      "confidence": 0.926
+      "confidence": 0.994
     },
     "investigator": {
       "genuineness": "GENUINE",
       "claim_status": "UNVERIFIED",
-      "reason": "GENUINE - low refund ratio 0.04, established account (27m), no abuse signals. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay."
+      "reason": "GENUINE - low refund ratio 0.04, established account (27m), no abuse signals. claim UNVERIFIED - no prior contact is on record, so the customer's assertion (e.g. 'I called and was promised a refund') cannot be substantiated; do not auto-pay.",
+      "signals": {
+        "ratio": 0.045,
+        "kept": 0,
+        "burst": 1,
+        "age": 27,
+        "first_purchase": false,
+        "prior_contacts": 0,
+        "promise_logged": false
+      },
+      "flags": [
+        "NO_RECORD"
+      ],
+      "confidence": 0.905
     },
     "economist": {
-      "action": "ACKNOWLEDGE",
-      "refund_type": "NONE",
+      "action": "REFUND",
+      "refund_type": "KEEP_ITEM",
       "coupon_percent": 0,
       "wallet_credit": 0,
       "escalate": false,
-      "email_trigger": false,
-      "reason": "GENUINE routine / Low frustration -> acknowledge or small gesture"
+      "email_trigger": true,
+      "reason": "GENUINE + Damaged_Defective -> refund (logistics by economics)"
     },
     "voice": {
-      "reply_text": "Thank you for reaching out and for taking the time to share this with us. We have carefully reviewed your account and the details of your request. On this occasion we are not able to issue any compensation, but your feedback has been logged and we genuinely value you as a Lulu customer. Please don't hesitate to contact us about any future order.",
-      "email": null
+      "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. There's no need to return the item - please keep or dispose of it as you wish. A confirmation email is on its way, and thank you for letting us put this right.",
+      "email": {
+        "to": "C0005@example.com",
+        "subject": "Your Lulu refund is confirmed (ref A0004)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nYou're welcome to keep or dispose of the item \u2014 there's no need to return it to us.\n\nReference: A0004     Account: C0005\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+      }
     },
-    "email_fired": false,
-    "audit_id": null,
+    "email_fired": true,
+    "audit_id": "A0004",
     "automation": {
       "escalated": false
     }
@@ -235,7 +306,20 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "GENUINE",
       "claim_status": "CONTRADICTED",
-      "reason": "GENUINE - low refund ratio 0.09, established account (61m), no abuse signals. claim CONTRADICTED - customer contacted us 2x but our notes show the remedy was declined/never promised, so the asserted promise is disproved by our record."
+      "reason": "GENUINE - low refund ratio 0.09, established account (61m), no abuse signals. claim CONTRADICTED - customer contacted us 2x but our notes show the remedy was declined/never promised, so the asserted promise is disproved by our record.",
+      "signals": {
+        "ratio": 0.087,
+        "kept": 0,
+        "burst": 2,
+        "age": 61,
+        "first_purchase": false,
+        "prior_contacts": 2,
+        "promise_logged": false
+      },
+      "flags": [
+        "CLAIM_DISPROVED"
+      ],
+      "confidence": 0.863
     },
     "economist": {
       "action": "ACKNOWLEDGE",
@@ -247,7 +331,7 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reason": "claim CONTRADICTED by our records -> respond from record, no payout"
     },
     "voice": {
-      "reply_text": "Thank you for reaching out and for taking the time to share this with us. We have carefully reviewed your account and the details of your request. On this occasion we are not able to issue any compensation, but your feedback has been logged and we genuinely value you as a Lulu customer. Please don't hesitate to contact us about any future order.",
+      "reply_text": "Thank you for reaching out and sharing this with us. We have reviewed the details available on your account and logged your feedback for our care team. We are unable to apply a remedy on this request, but we appreciate you giving Lulu the chance to review it and support you better next time.",
       "email": null
     },
     "email_fired": false,
@@ -267,7 +351,18 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "GENUINE",
       "claim_status": "CONFIRMED",
-      "reason": "GENUINE - low refund ratio 0.07, established account (33m), no abuse signals. claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy)."
+      "reason": "GENUINE - low refund ratio 0.07, established account (33m), no abuse signals. claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy).",
+      "signals": {
+        "ratio": 0.068,
+        "kept": 0,
+        "burst": 0,
+        "age": 33,
+        "first_purchase": false,
+        "prior_contacts": 2,
+        "promise_logged": true
+      },
+      "flags": [],
+      "confidence": 0.882
     },
     "economist": {
       "action": "REFUND",
@@ -282,12 +377,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. There's no need to return the item - please keep or dispose of it as you wish. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0034@example.com",
-        "subject": "Your Lulu refund is confirmed (ref A0027)",
-        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nYou're welcome to keep or dispose of the item \u2014 there's no need to return it to us.\n\nReference: A0027     Account: C0034\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+        "subject": "Your Lulu refund is confirmed (ref A0005)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nYou're welcome to keep or dispose of the item \u2014 there's no need to return it to us.\n\nReference: A0005     Account: C0034\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0027",
+    "audit_id": "A0005",
     "automation": {
       "escalated": false
     }
@@ -303,7 +398,23 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
     "investigator": {
       "genuineness": "LIKELY_ABUSER",
       "claim_status": "CONFIRMED",
-      "reason": "LIKELY_ABUSER - refund ratio 0.58 >= 0.5; kept 4 refunded items (>= 3); 4 complaints in 30 days (>= 4). claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy); NOTE: customer is a likely abuser, so honour the logged promise only and grant no extra generosity (Plan Sec.4.7)."
+      "reason": "LIKELY_ABUSER - refund ratio 0.58 >= 0.5; kept 4 refunded items (>= 3); 4 complaints in 30 days (>= 4). claim CONFIRMED - a promise is logged in our own records, so it is honoured (capped to the promised remedy); NOTE: customer is a likely abuser, so honour the logged promise only and grant no extra generosity (Plan Sec.4.7).",
+      "signals": {
+        "ratio": 0.579,
+        "kept": 4,
+        "burst": 4,
+        "age": 14,
+        "first_purchase": false,
+        "prior_contacts": 2,
+        "promise_logged": true
+      },
+      "flags": [
+        "ABUSE_RATIO",
+        "ABUSE_KEPT_ITEMS",
+        "ABUSE_BURST",
+        "PROMISE_TO_ABUSER"
+      ],
+      "confidence": 0.658
     },
     "economist": {
       "action": "REFUND",
@@ -318,12 +429,12 @@ export const DEMO_DATA: Record<string, ResolveResponse> = {
       "reply_text": "We're truly sorry about this experience. We've confirmed a full refund for your order. We will arrange a free pickup of the item at a time that suits you. A confirmation email is on its way, and thank you for letting us put this right.",
       "email": {
         "to": "C0006@example.com",
-        "subject": "Your Lulu refund is confirmed (ref A0028)",
-        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0028     Account: C0006\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
+        "subject": "Your Lulu refund is confirmed (ref A0006)",
+        "body": "Dear valued Lulu customer,\n\nWe're truly sorry your order didn't meet the standard you rightly expect from Lulu. We've approved a full refund, which will appear on your original payment method within 5\u20137 business days.\n\nOur courier will collect the item from you within 2 business days, at a time that suits you \u2014 there's nothing you need to prepare.\n\nReference: A0006     Account: C0006\n\nIf anything isn't quite right, simply reply to this email and our care team will personally look into it.\n\nWarm regards,\nThe LuluCare Team\nLulu Hypermarket \u00b7 Customer Experience"
       }
     },
     "email_fired": true,
-    "audit_id": "A0028",
+    "audit_id": "A0006",
     "automation": {
       "escalated": false
     }

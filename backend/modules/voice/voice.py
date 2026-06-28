@@ -406,8 +406,8 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
     email_trigger is True, and write one append-only audit row.
 
     Returns (email_dict, audit_id) or (None, None).  The audit_id is assigned
-    inside the lock so it is always correct even under concurrent requests —
-    callers must NOT use read_last_audit_id() as a substitute.
+    inside the lock so it is always correct even under concurrent requests, and
+    returned directly so callers never need to re-read the log to find it.
 
     The Voice obeys decision['email_trigger']; it never recomputes the rule
     (Integration Rule 9). ACKNOWLEDGE and ESCALATE carry email_trigger=False
@@ -443,25 +443,6 @@ def fire_email(profile: dict, decision: dict, reply_text: str = ""):
             fh.write(json.dumps(record) + "\n")
 
     return email, audit_id
-
-
-def read_last_audit_id():
-    """audit_id of the most recent money action, or None. Lets the pipeline
-    populate the consolidated response's audit_id field."""
-    path = _audit_path()
-    if not os.path.exists(path):
-        return None
-    last = None
-    with open(path, "r", encoding="utf-8") as fh:
-        for line in fh:
-            if line.strip():
-                last = line
-    if last is None:
-        return None
-    try:
-        return json.loads(last)["audit_id"]
-    except (json.JSONDecodeError, KeyError):
-        return None
 
 
 def read_audit_log():
