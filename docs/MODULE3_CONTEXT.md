@@ -138,7 +138,7 @@ If it fires → `action` becomes `ESCALATE` and `email_trigger` becomes `False`.
 ### 👉 If you are building Module 2 (The Investigator)
 - You must output **exactly** `{"genuineness", "claim_status", "reason"}`.
 - `reason` is more than a label — for `CONFIRMED` cases the Economist scans it for the word `"coupon"` or a `%` symbol to decide whether to honour a coupon or a refund. Write it descriptively: e.g. `"Agent promised 20% coupon on previous call, not yet issued."`
-- **Boundary flag (C0059):** `refund_to_order_ratio` is exactly `0.5` for this customer. Your threshold `ratio ≥ 0.5 → LIKELY_ABUSER` would label them `LIKELY_ABUSER`. However, Module 3 test case 9 mocks them as `SUSPICIOUS` to exercise the escalation valve. Agree on which verdict to emit for `ratio == 0.5` exactly — and be consistent.
+- **Boundary case (C0059) — resolved:** `refund_to_order_ratio` is exactly `0.5`, but from only 2 orders (a single refund). The ratio rule now requires `≥ 3 orders` before a high ratio counts as abuse, so C0059 (and C0162) read as `SUSPICIOUS` — which matches both the ground-truth `_archetype` and Module 3 test case 9's mock. The Investigator's real output and the test mock now agree.
 
 ### 👉 If you are building Module 4 (The Voice)
 - You receive the full `decision` dict above. Read it verbatim — do not rename keys.

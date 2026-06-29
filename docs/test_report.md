@@ -9,7 +9,7 @@ LSTM when `backend/models/` artifacts are present, else the keyword fallback.)
 | Suite | Tests | Result | Covers |
 |---|---:|---|---|
 | `test_reader.py` | 16 | ✅ | contract keys/types, enum membership, `[0,1]` confidence, empty-input fallback, JSON-safe, active backend |
-| `test_investigator.py` | 52 | ✅ | 3 fraud paths, 3 claim states, CONTRADICTED note bank, tone-blindness, C0006, `_archetype` quarantine, scored 218/220 vs archetype, negation/history robustness |
+| `test_investigator.py` | 54 | ✅ | 3 fraud paths, 3 claim states, small-sample ratio guard, CONTRADICTED note bank, tone-blindness, C0006, `_archetype` quarantine, scored 220/220 vs archetype, negation/history robustness |
 | `test_economist.py` | 28 | ✅ | 11 verified cases, tier-table order, logistics tree, escalation valve, email truth table, native-type casting |
 | `test_voice.py` | 6 | ✅ | reply for every action, email iff `email_trigger`, ACKNOWLEDGE/ESCALATE never email, audit row per money action, template fallback |
 | `test_pipeline.py` | 6 | ✅ | consolidated contract shape, JSON-safety, email rule end-to-end, 404 unknown id, stats |
@@ -17,7 +17,7 @@ LSTM when `backend/models/` artifacts are present, else the keyword fallback.)
 
 ## Module-level (Plan §8.1)
 - **Reader** — output is exactly `{issue_type, frustration, confidence}`; types correct; `issue_type` in the 7-enum; `frustration` in the 3-enum; confidence in `[0,1]`; empty/garbage never raises; backend-agnostic (LSTM or keyword).
-- **Investigator** — all three genuineness paths and all three claim states; tone never changes the verdict; reproduces `_archetype` for **218/220** customers; claim distribution 33 CONFIRMED / 36 CONTRADICTED / 151 UNVERIFIED; never references `_archetype`.
+- **Investigator** — all three genuineness paths and all three claim states; tone never changes the verdict; reproduces `_archetype` for **all 220/220** customers (the ratio rule requires ≥ 3 orders, resolving the C0059/C0162 small-sample boundary); claim distribution 33 CONFIRMED / 36 CONTRADICTED / 151 UNVERIFIED; never references `_archetype`.
 - **Economist** — tier table evaluated top-to-bottom (first match wins); logistics tree all branches (perishable, resale ≥ 2000, cost > resale); escalation on both conditions; `coupon_percent ∈ {0,20,50}`; abuse never pays; every returned value native Python.
 - **Voice** — a reply for every action; the polite ACKNOWLEDGE promises nothing; email present iff `email_trigger`; one audit row per money action; template fallback active with `LULU_DISABLE_FLAN=1`.
 

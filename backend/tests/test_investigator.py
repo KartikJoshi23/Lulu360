@@ -60,6 +60,7 @@ def _profile(**over) -> dict:
         "account_age_months": 40,
         "loyalty_tier": "Gold",
         "refund_to_order_ratio": 0.05,
+        "total_orders": 40,            # a loyal regular has real order history
         "items_kept_after_refund": 0,
         "complaints_last_30_days": 0,
         "is_first_purchase": False,
@@ -84,6 +85,17 @@ class TestGenuineness:
         # The serial refunder: 6 orders, 5 refunds, kept 3, ratio 0.83.
         p = _profile(refund_to_order_ratio=0.833, items_kept_after_refund=3,
                      complaints_last_30_days=4)
+        assert assess_genuineness(p) == LIKELY_ABUSER
+
+    def test_small_sample_ratio_is_suspicious_not_abuser(self):
+        # ratio 0.50 but only 2 orders (one refund) -> small-sample artefact ->
+        # SUSPICIOUS, matching the ground truth for new accounts (C0059, C0162).
+        p = _profile(refund_to_order_ratio=0.50, total_orders=2, account_age_months=1)
+        assert assess_genuineness(p) == SUSPICIOUS
+
+    def test_same_ratio_with_real_history_is_abuser(self):
+        # The same 0.50 ratio backed by enough orders IS abuse.
+        p = _profile(refund_to_order_ratio=0.50, total_orders=10)
         assert assess_genuineness(p) == LIKELY_ABUSER
 
     def test_abuser_by_kept_items_alone(self):
@@ -257,8 +269,9 @@ def test_genuineness_matches_archetype_on_real_data():
         profile = {k: v for k, v in row.items() if k != "_archetype"}
         if assess_genuineness(profile) == row["_archetype"]:
             correct += 1
-    # The two documented near-misses (C0059, C0162) are the only allowed misses.
-    assert correct >= 218, f"only {correct}/{len(raw)} matched archetype"
+    # The min-orders guard on the ratio rule fixes the two former near-misses
+    # (C0059, C0162 sit on ratio 0.50 with only 2 orders) -> a perfect match.
+    assert correct == len(raw), f"only {correct}/{len(raw)} matched archetype"
 
 
 def test_claim_distribution_matches_plan_on_real_data():

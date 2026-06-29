@@ -80,8 +80,10 @@ Every branch carries a specific `reason`, so the call is always defensible.
 | is_first_purchase | — | True |
 
 Re-running these rules over `customers.csv` reproduces the ground-truth
-`_archetype` for **218 / 220** customers (the two misses are C0059 and C0162,
-both `SUSPICIOUS` accounts sitting exactly on a `LIKELY_ABUSER` boundary).
+`_archetype` for **all 220 / 220** customers. The ratio rule requires at least
+3 orders before a high refund ratio counts as abuse, so the two former boundary
+cases (C0059, C0162 — ratio 0.50 from a single refund on a 2-order account) now
+read as `SUSPICIOUS`, matching the ground truth and the Module 3 test mock.
 
 Claim verification reproduces the plan's exact split: **33 CONFIRMED / 36
 CONTRADICTED / 151 UNVERIFIED** — verified against the real file, not assumed.

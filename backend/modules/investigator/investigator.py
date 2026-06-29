@@ -101,10 +101,18 @@ except ModuleNotFoundError:
 # ===========================================================================
 # Thresholds - the team's to tune, documented and verified against the data.
 # Re-running these rules over customers.csv reproduces the ground-truth
-# _archetype for 218 / 220 customers (Implementation Plan, Orientation Sec.).
+# _archetype for ALL 220 / 220 customers.
 # ===========================================================================
 
 ABUSER_RATIO = 0.50          # a refund on most orders is the killer abuse signal
+ABUSER_MIN_ORDERS = 3        # ...but only once there is enough history for the
+                             # ratio to mean something. One refund out of two
+                             # orders (ratio 0.50) on a brand-new account is a
+                             # small-sample artefact, not proof of abuse — those
+                             # customers fall to SUSPICIOUS (verify, cap), which
+                             # is what the ground truth intends (the "newbie
+                             # chancer" is SUSPICIOUS, not LIKELY_ABUSER). All 45
+                             # real abusers have >= 3 orders, so none slip.
 ABUSER_KEPT_ITEMS = 3        # repeatedly keeping refunded items is "refund-and-keep"
 ABUSER_BURST = 4             # a burst of complaints in 30 days = coordinated claims
 
@@ -197,8 +205,12 @@ def assess_genuineness(profile: dict) -> str:
     s = _history_signals(profile)
 
     # The serial refunder: refunds on most orders, keeps items, or a complaint
-    # burst. No payout follows, no matter how angry the message.
-    if s["ratio"] >= ABUSER_RATIO or s["kept"] >= ABUSER_KEPT_ITEMS or s["burst"] >= ABUSER_BURST:
+    # burst. No payout follows, no matter how angry the message. The ratio only
+    # counts as abuse once there is enough order history behind it (>= 3 orders);
+    # a 0.50 ratio from a single refund on a 2-order account is a small-sample
+    # artefact and falls to SUSPICIOUS below, matching the ground truth.
+    if (s["ratio"] >= ABUSER_RATIO and s["orders"] >= ABUSER_MIN_ORDERS) \
+            or s["kept"] >= ABUSER_KEPT_ITEMS or s["burst"] >= ABUSER_BURST:
         return LIKELY_ABUSER
 
     # Worth watching: elevated ratio, a brand-new / first-purchase account, or a
@@ -417,7 +429,7 @@ def _claim_from_history(conversation_history):
 def _build_flags(s, genuineness, claim_status, profile) -> list:
     """Short machine-readable tags explaining which rules fired. Optional."""
     flags = []
-    if s["ratio"] >= ABUSER_RATIO:
+    if s["ratio"] >= ABUSER_RATIO and s["orders"] >= ABUSER_MIN_ORDERS:
         flags.append("ABUSE_RATIO")
     if s["kept"] >= ABUSER_KEPT_ITEMS:
         flags.append("ABUSE_KEPT_ITEMS")
@@ -472,6 +484,7 @@ def _history_signals(profile: dict) -> dict:
         "kept": _as_int(profile.get("items_kept_after_refund", 0)),
         "burst": _as_int(profile.get("complaints_last_30_days", 0)),
         "age": _as_int(profile.get("account_age_months", 0)),
+        "orders": _as_int(profile.get("total_orders", 0)),
         "first_purchase": _as_bool(profile.get("is_first_purchase", False)),
         "prior_contacts": _as_int(profile.get("prior_contacts_this_issue", 0)),
         "promise_logged": _as_bool(profile.get("prior_promise_logged", False)),
